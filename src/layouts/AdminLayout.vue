@@ -1,7 +1,7 @@
 <template>
   <el-container class="shell">
     <el-aside class="sidebar" width="220px">
-      <div class="logo">ZF Youth Fitness</div>
+      <div class="logo">ZF青少年体能教务平台</div>
       <el-menu :default-active="activePath" router class="menu">
         <el-menu-item index="/dashboard">仪表盘</el-menu-item>
         <el-menu-item index="/students">学员管理</el-menu-item>
@@ -15,13 +15,17 @@
       <el-header class="header">
         <div class="header-left">{{ route.meta.title || '工作台' }}</div>
         <div class="header-right">
-          <el-tag type="success">{{ role || 'UNKNOWN' }}</el-tag>
+          <el-tag type="success">{{ roleLabel }}</el-tag>
           <span class="username">{{ username }}</span>
-          <el-button type="danger" plain size="small" @click="logout">退出</el-button>
+          <el-button type="danger" plain size="small" @click="logout">退出登录</el-button>
         </div>
       </el-header>
       <el-main class="main">
-        <router-view />
+        <router-view v-slot="{ Component }">
+          <keep-alive>
+            <component :is="Component" />
+          </keep-alive>
+        </router-view>
       </el-main>
     </el-container>
   </el-container>
@@ -37,7 +41,8 @@ const router = useRouter()
 
 const activePath = computed(() => route.path)
 const role = getRole()
-const username = getDisplayName()
+const roleLabel = role === 'ADMIN' ? '管理员' : role === 'COACH' ? '教练' : '未识别角色'
+const username = getDisplayName() || '未登录用户'
 
 function logout() {
   clearAuth()
@@ -58,7 +63,7 @@ function logout() {
 .logo {
   font-weight: 700;
   letter-spacing: 0.5px;
-  font-size: 18px;
+  font-size: 16px;
   padding: 22px 18px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.18);
 }

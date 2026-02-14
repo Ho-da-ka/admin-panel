@@ -5,30 +5,30 @@
 
     <el-card class="login-card">
       <h1>管理后台登录</h1>
-      <p>ZF 青少年体能培训教务管理平台</p>
+      <p>ZF青少年体能培训教务管理平台</p>
 
       <el-form label-position="top" @submit.prevent="handleLogin">
-        <el-form-item label="用户名">
-          <el-input v-model="form.username" placeholder="admin 或 coach" />
+        <el-form-item label="用户名" required>
+          <el-input v-model="form.username" placeholder="请输入用户名" />
         </el-form-item>
 
-        <el-form-item label="密码">
-          <el-input v-model="form.password" type="password" show-password placeholder="输入密码" />
+        <el-form-item label="密码" required>
+          <el-input v-model="form.password" type="password" show-password placeholder="请输入密码" />
         </el-form-item>
 
-        <el-form-item label="角色标记（用于前端权限显示）">
+        <el-form-item label="角色（用于前端展示）">
           <el-select v-model="form.role" style="width: 100%">
-            <el-option label="ADMIN" value="ADMIN" />
-            <el-option label="COACH" value="COACH" />
+            <el-option label="管理员" value="ADMIN" />
+            <el-option label="教练" value="COACH" />
           </el-select>
         </el-form-item>
 
         <el-button :loading="loading" type="primary" style="width: 100%" @click="handleLogin">
-          登录并进入
+          登录并进入系统
         </el-button>
       </el-form>
 
-      <div class="tips">后端当前认证方式：HTTP Basic（非 JWT 登录接口）</div>
+      <div class="tips">当前后端认证方式：HTTP Basic（暂未提供独立登录接口）</div>
     </el-card>
   </div>
 </template>

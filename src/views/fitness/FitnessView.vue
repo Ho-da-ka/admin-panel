@@ -23,29 +23,29 @@
 
     <el-dialog v-model="dialogVisible" title="新增体测" width="520px">
       <el-form label-position="top">
-        <el-form-item label="学员">
+        <el-form-item label="学员" required>
           <el-select v-model="form.studentId" filterable style="width: 100%">
             <el-option v-for="item in studentOptions" :key="item.id" :label="item.name" :value="item.id" />
           </el-select>
         </el-form-item>
 
-        <el-form-item label="测试日期">
+        <el-form-item label="测试日期" required>
           <el-date-picker v-model="form.testDate" value-format="YYYY-MM-DD" type="date" style="width: 100%" />
         </el-form-item>
 
-        <el-form-item label="项目"><el-input v-model="form.itemName" maxlength="100" /></el-form-item>
+        <el-form-item label="项目" required><el-input v-model="form.itemName" maxlength="100" /></el-form-item>
 
-        <el-form-item label="数值">
+        <el-form-item label="数值" required>
           <el-input-number v-model="form.testValue" :min="0.01" :precision="2" style="width: 100%" />
         </el-form-item>
 
-        <el-form-item label="单位"><el-input v-model="form.unit" maxlength="32" /></el-form-item>
+        <el-form-item label="单位" required><el-input v-model="form.unit" maxlength="32" /></el-form-item>
 
         <el-form-item label="评语"><el-input v-model="form.comment" maxlength="255" type="textarea" /></el-form-item>
       </el-form>
 
       <template #footer>
-        <el-button @click="dialogVisible = false">取消</el-button>
+        <el-button @click="cancelForm">取消</el-button>
         <el-button type="primary" :loading="saving" @click="submit">保存</el-button>
       </template>
     </el-dialog>
@@ -53,9 +53,14 @@
 </template>
 
 <script setup>
-import { onMounted, reactive, ref } from 'vue'
+import { onMounted, reactive, ref, watch } from 'vue'
 import { ElMessage } from 'element-plus'
 import { createFitnessTest, listFitnessTests, listStudents } from '../../api/modules'
+import { clearDraft, loadDraft, saveDraft } from '../../utils/draft'
+import { normalizeText } from '../../utils/validators'
+
+const FILTER_DRAFT_KEY = 'fitness.filters'
+const FORM_DRAFT_KEY = 'fitness.form'
 
 const loading = ref(false)
 const saving = ref(false)
@@ -63,9 +68,8 @@ const saving = ref(false)
 const rows = ref([])
 const studentOptions = ref([])
 
-const filters = reactive({
-  studentId: null
-})
+const filterDefaults = { studentId: null }
+const filters = reactive({ ...filterDefaults, ...loadDraft(FILTER_DRAFT_KEY, filterDefaults) })
 
 const dialogVisible = ref(false)
 const form = reactive({
@@ -74,8 +78,20 @@ const form = reactive({
   itemName: '',
   testValue: 1,
   unit: 's',
-  comment: ''
+  comment: '',
+  ...loadDraft(FORM_DRAFT_KEY, {})
 })
+
+function resetForm() {
+  Object.assign(form, {
+    studentId: null,
+    testDate: '',
+    itemName: '',
+    testValue: 1,
+    unit: 's',
+    comment: ''
+  })
+}
 
 async function loadStudents() {
   const data = await listStudents({ page: 0, size: 200 })
@@ -83,15 +99,9 @@ async function loadStudents() {
 }
 
 async function search() {
-  if (!filters.studentId) {
-    rows.value = []
-    ElMessage.info('请先选择学员再查询')
-    return
-  }
-
   loading.value = true
   try {
-    rows.value = await listFitnessTests({ studentId: filters.studentId })
+    rows.value = await listFitnessTests({ studentId: filters.studentId || undefined })
   } catch (error) {
     ElMessage.error(error?.response?.data?.message || error.message || '查询失败')
   } finally {
@@ -100,25 +110,28 @@ async function search() {
 }
 
 async function submit() {
-  if (!form.studentId || !form.testDate || !form.itemName || !form.testValue || !form.unit) {
+  const payload = {
+    studentId: form.studentId,
+    testDate: form.testDate,
+    itemName: normalizeText(form.itemName),
+    testValue: form.testValue,
+    unit: normalizeText(form.unit),
+    comment: normalizeText(form.comment)
+  }
+
+  if (!payload.studentId || !payload.testDate || !payload.itemName || !payload.testValue || !payload.unit) {
     ElMessage.warning('请填写必填字段')
     return
   }
 
   saving.value = true
   try {
-    await createFitnessTest({ ...form })
+    await createFitnessTest(payload)
     ElMessage.success('体测记录已保存')
     dialogVisible.value = false
-    form.studentId = null
-    form.testDate = ''
-    form.itemName = ''
-    form.testValue = 1
-    form.unit = 's'
-    form.comment = ''
-    if (filters.studentId) {
-      await search()
-    }
+    clearDraft(FORM_DRAFT_KEY)
+    resetForm()
+    await search()
   } catch (error) {
     ElMessage.error(error?.response?.data?.message || error.message || '保存失败')
   } finally {
@@ -126,9 +139,39 @@ async function submit() {
   }
 }
 
+function cancelForm() {
+  dialogVisible.value = false
+  clearDraft(FORM_DRAFT_KEY)
+  resetForm()
+}
+
+watch(
+  filters,
+  () => saveDraft(FILTER_DRAFT_KEY, { ...filters }),
+  { deep: true }
+)
+
+watch(
+  () => filters.studentId,
+  () => {
+    search()
+  }
+)
+
+watch(
+  form,
+  () => {
+    if (dialogVisible.value) {
+      saveDraft(FORM_DRAFT_KEY, { ...form })
+    }
+  },
+  { deep: true }
+)
+
 onMounted(async () => {
   try {
     await loadStudents()
+    await search()
   } catch (error) {
     ElMessage.error(error?.response?.data?.message || error.message || '初始化失败')
   }

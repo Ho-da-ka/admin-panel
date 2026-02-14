@@ -6,7 +6,7 @@
       <el-card>
         <template #header>服务状态</template>
         <div class="metric">
-          <el-tag :type="pingData.status === 'UP' ? 'success' : 'danger'">{{ pingData.status || '-' }}</el-tag>
+          <el-tag :type="pingData.status === 'UP' ? 'success' : 'danger'">{{ serviceStatusText }}</el-tag>
         </div>
       </el-card>
 
@@ -29,7 +29,7 @@
 </template>
 
 <script setup>
-import { onMounted, reactive } from 'vue'
+import { computed, onMounted, reactive } from 'vue'
 import { ElMessage } from 'element-plus'
 import { listCourses, listStudents, pingHealth } from '../api/modules'
 
@@ -41,6 +41,12 @@ const stats = reactive({
 const pingData = reactive({
   status: '',
   time: ''
+})
+
+const serviceStatusText = computed(() => {
+  if (pingData.status === 'UP') return '运行中'
+  if (!pingData.status) return '-'
+  return '异常'
 })
 
 async function load() {
