@@ -1,0 +1,65 @@
+:root {
+  --bg-soft: radial-gradient(circle at 10% 10%, #e8fff5 0%, #eff8ff 30%, #fffdf8 100%);
+  --bg-strong: linear-gradient(135deg, #0f2f2d 0%, #184f4b 60%, #2e7b73 100%);
+  --color-primary: #1f8b7a;
+  --color-accent: #f18f01;
+  --color-text: #1d2939;
+  --color-muted: #667085;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#app {
+  margin: 0;
+  width: 100%;
+  min-height: 100%;
+  font-family: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  color: var(--color-text);
+}
+
+body {
+  background: var(--bg-soft);
+}
+
+.page-panel {
+  background: rgba(255, 255, 255, 0.92);
+  border-radius: 14px;
+  border: 1px solid rgba(31, 139, 122, 0.12);
+  box-shadow: 0 10px 35px rgba(15, 47, 45, 0.08);
+  padding: 16px;
+}
+
+.page-title {
+  font-size: 20px;
+  font-weight: 700;
+  margin: 0 0 14px;
+}
+
+.toolbar {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+@media (max-width: 1080px) {
+  .info-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 680px) {
+  .info-grid {
+    grid-template-columns: 1fr;
+  }
+}
