@@ -1,4 +1,4 @@
-# ZF 青少年体能培训教务管理平台 - 管理后台
+﻿# ZF 青少年体能培训教务管理平台 - 管理后台
 
 ## 技术栈
 - Vue 3 + Vite
@@ -12,12 +12,12 @@ npm install
 npm run dev
 ```
 
-默认访问: `http://localhost:5173`
+默认访问：`http://localhost:5173`
 
 ## 联调说明
 - 前端代理 `/api` 到 `http://localhost:8080`
 - 后端当前使用 HTTP Basic 认证
-- 默认账号:
+- 默认账号：
   - `admin / Admin@123`
   - `coach / Coach@123`
 
@@ -27,4 +27,5 @@ npm run dev
 - 课程管理
 - 考勤管理
 - 体测管理
+- 训练记录
 - 健康检查

@@ -1,4 +1,4 @@
-import http from './http'
+﻿import http from './http'
 
 function unwrap(response) {
   const body = response.data
@@ -58,4 +58,20 @@ export async function listFitnessTests(params) {
 
 export async function createFitnessTest(payload) {
   return unwrap(await http.post('/fitness-tests', payload))
+}
+
+export async function listTrainingRecords(params) {
+  return unwrap(await http.get('/training-records', { params }))
+}
+
+export async function getTrainingRecord(id) {
+  return unwrap(await http.get(`/training-records/${id}`))
+}
+
+export async function createTrainingRecord(payload) {
+  return unwrap(await http.post('/training-records', payload))
+}
+
+export async function updateTrainingRecord(id, payload) {
+  return unwrap(await http.put(`/training-records/${id}`, payload))
 }

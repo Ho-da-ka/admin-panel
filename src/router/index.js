@@ -1,4 +1,4 @@
-import { createRouter, createWebHistory } from 'vue-router'
+﻿import { createRouter, createWebHistory } from 'vue-router'
 import { isLoggedIn } from '../utils/auth'
 
 const routes = [
@@ -42,6 +42,12 @@ const routes = [
         name: 'fitness-tests',
         component: () => import('../views/fitness/FitnessView.vue'),
         meta: { title: '体测管理' }
+      },
+      {
+        path: 'training-records',
+        name: 'training-records',
+        component: () => import('../views/training/TrainingRecordView.vue'),
+        meta: { title: '训练记录' }
       }
     ]
   }
