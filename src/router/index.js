@@ -32,6 +32,12 @@ const routes = [
         meta: { title: '课程管理' }
       },
       {
+        path: 'coaches',
+        name: 'coaches',
+        component: () => import('../views/coaches/CoachListView.vue'),
+        meta: { title: '教练管理' }
+      },
+      {
         path: 'attendances',
         name: 'attendances',
         component: () => import('../views/attendances/AttendanceView.vue'),

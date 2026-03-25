@@ -32,6 +32,30 @@ export async function listCourses(params) {
   return unwrap(await http.get('/courses', { params }))
 }
 
+export async function listCoaches(params) {
+  return unwrap(await http.get('/coaches', { params }))
+}
+
+export async function listCoachOptions() {
+  return unwrap(await http.get('/coaches/options'))
+}
+
+export async function getCoach(id) {
+  return unwrap(await http.get(`/coaches/${id}`))
+}
+
+export async function createCoach(payload) {
+  return unwrap(await http.post('/coaches', payload))
+}
+
+export async function updateCoach(id, payload) {
+  return unwrap(await http.put(`/coaches/${id}`, payload))
+}
+
+export async function deleteCoach(id) {
+  return unwrap(await http.delete(`/coaches/${id}`))
+}
+
 export async function getCourse(id) {
   return unwrap(await http.get(`/courses/${id}`))
 }

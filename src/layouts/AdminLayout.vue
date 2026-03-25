@@ -5,6 +5,7 @@
       <el-menu :default-active="activePath" router class="menu">
         <el-menu-item index="/dashboard">仪表盘</el-menu-item>
         <el-menu-item index="/students">学员管理</el-menu-item>
+        <el-menu-item index="/coaches">教练管理</el-menu-item>
         <el-menu-item index="/courses">课程管理</el-menu-item>
         <el-menu-item index="/attendances">考勤管理</el-menu-item>
         <el-menu-item index="/fitness-tests">体测管理</el-menu-item>
