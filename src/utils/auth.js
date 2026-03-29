@@ -18,11 +18,15 @@ export function clearAuth() {
 
 export function isLoggedIn() {
   const auth = getAuth()
-  return Boolean(auth?.token)
+  return Boolean(auth?.accessToken)
 }
 
-export function getBasicToken() {
-  return getAuth()?.token || ''
+export function getAccessToken() {
+  return getAuth()?.accessToken || ''
+}
+
+export function getRefreshToken() {
+  return getAuth()?.refreshToken || ''
 }
 
 export function getRole() {

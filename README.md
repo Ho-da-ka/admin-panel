@@ -16,10 +16,12 @@ npm run dev
 
 ## 联调说明
 - 前端代理 `/api` 到 `http://localhost:8080`
-- 后端当前使用 HTTP Basic 认证
+- 后端使用 JWT Bearer 认证（登录页自动换取 token 并注入请求头）
 - 默认账号：
   - `admin / Admin@123`
   - `coach / Coach@123`
+  - `student / Student@123`（提示使用小程序端）
+  - `parent / Parent@123`（提示使用小程序端）
 
 ## 页面模块
 - 仪表盘

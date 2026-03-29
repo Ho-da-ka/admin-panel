@@ -16,19 +16,13 @@
           <el-input v-model="form.password" type="password" show-password placeholder="请输入密码" />
         </el-form-item>
 
-        <el-form-item label="角色（用于前端展示）">
-          <el-select v-model="form.role" style="width: 100%">
-            <el-option label="管理员" value="ADMIN" />
-            <el-option label="教练" value="COACH" />
-          </el-select>
-        </el-form-item>
-
         <el-button :loading="loading" type="primary" style="width: 100%" @click="handleLogin">
           登录并进入系统
         </el-button>
       </el-form>
 
-      <div class="tips">当前后端认证方式：HTTP Basic（暂未提供独立登录接口）</div>
+      <div class="tips">认证方式：JWT（Bearer Token）</div>
+      <div class="tips">默认账号：admin/Admin@123、coach/Coach@123、student/Student@123、parent/Parent@123</div>
     </el-card>
   </div>
 </template>
@@ -37,7 +31,7 @@
 import { reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { listStudents } from '../api/modules'
+import { login } from '../api/modules'
 import { clearAuth, setAuth } from '../utils/auth'
 
 const router = useRouter()
@@ -45,9 +39,15 @@ const loading = ref(false)
 
 const form = reactive({
   username: 'admin',
-  password: 'Admin@123',
-  role: 'ADMIN'
+  password: 'Admin@123'
 })
+
+const roleLabels = {
+  ADMIN: '管理员',
+  COACH: '教练',
+  STUDENT: '学生',
+  PARENT: '家长'
+}
 
 async function handleLogin() {
   if (!form.username || !form.password) {
@@ -56,11 +56,24 @@ async function handleLogin() {
   }
 
   loading.value = true
-  const token = btoa(`${form.username}:${form.password}`)
-
   try {
-    setAuth({ token, username: form.username, role: form.role })
-    await listStudents({ page: 0, size: 1 })
+    const authData = await login({
+      username: form.username.trim(),
+      password: form.password
+    })
+
+    if (!['ADMIN', 'COACH'].includes(authData.role)) {
+      clearAuth()
+      ElMessage.warning(`当前账号角色为${roleLabels[authData.role] || authData.role}，请使用小程序端登录`)
+      return
+    }
+
+    setAuth({
+      accessToken: authData.accessToken,
+      refreshToken: authData.refreshToken,
+      username: authData.username,
+      role: authData.role
+    })
     ElMessage.success('登录成功')
     router.replace('/dashboard')
   } catch (error) {

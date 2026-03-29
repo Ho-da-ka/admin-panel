@@ -36,6 +36,7 @@
 <script setup>
 import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { logout as requestLogout } from '../api/modules'
 import { clearAuth, getDisplayName, getRole } from '../utils/auth'
 
 const route = useRoute()
@@ -43,10 +44,21 @@ const router = useRouter()
 
 const activePath = computed(() => route.path)
 const role = getRole()
-const roleLabel = role === 'ADMIN' ? '管理员' : role === 'COACH' ? '教练' : '未识别角色'
+const roleLabelMap = {
+  ADMIN: '管理员',
+  COACH: '教练',
+  STUDENT: '学生',
+  PARENT: '家长'
+}
+const roleLabel = roleLabelMap[role] || '未识别角色'
 const username = getDisplayName() || '未登录用户'
 
-function logout() {
+async function logout() {
+  try {
+    await requestLogout({})
+  } catch {
+    // ignore logout failure, local token will still be cleared
+  }
   clearAuth()
   router.replace('/login')
 }

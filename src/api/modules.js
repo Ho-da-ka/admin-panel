@@ -12,6 +12,14 @@ export async function pingHealth() {
   return unwrap(await http.get('/public/ping'))
 }
 
+export async function login(payload) {
+  return unwrap(await http.post('/auth/login', payload, { skipAuth: true }))
+}
+
+export async function logout(payload) {
+  return unwrap(await http.post('/auth/logout', payload || {}, { skipAuth: true }))
+}
+
 export async function listStudents(params) {
   return unwrap(await http.get('/students', { params }))
 }
