@@ -19,6 +19,7 @@
         <div class="header-right">
           <el-tag type="success">{{ roleLabel }}</el-tag>
           <span class="username">{{ username }}</span>
+          <el-button plain size="small" @click="passwordDialogVisible = true">修改密码</el-button>
           <el-button type="danger" plain size="small" @click="logout">退出登录</el-button>
         </div>
       </el-header>
@@ -31,12 +32,31 @@
       </el-main>
     </el-container>
   </el-container>
+
+  <el-dialog v-model="passwordDialogVisible" title="修改密码" width="420px">
+    <el-form label-position="top">
+      <el-form-item label="旧密码" required>
+        <el-input v-model="passwordForm.oldPassword" type="password" show-password />
+      </el-form-item>
+      <el-form-item label="新密码" required>
+        <el-input v-model="passwordForm.newPassword" type="password" show-password />
+      </el-form-item>
+      <el-form-item label="确认新密码" required>
+        <el-input v-model="passwordForm.confirmPassword" type="password" show-password />
+      </el-form-item>
+    </el-form>
+    <template #footer>
+      <el-button @click="cancelChangePassword">取消</el-button>
+      <el-button type="primary" :loading="changingPassword" @click="submitChangePassword">保存</el-button>
+    </template>
+  </el-dialog>
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { logout as requestLogout } from '../api/modules'
+import { ElMessage } from 'element-plus'
+import { changeOwnPassword, logout as requestLogout } from '../api/modules'
 import { clearAuth, getDisplayName, getRole } from '../utils/auth'
 
 const route = useRoute()
@@ -52,6 +72,19 @@ const roleLabelMap = {
 }
 const roleLabel = roleLabelMap[role] || '未识别角色'
 const username = getDisplayName() || '未登录用户'
+const passwordDialogVisible = ref(false)
+const changingPassword = ref(false)
+const passwordForm = reactive({
+  oldPassword: '',
+  newPassword: '',
+  confirmPassword: ''
+})
+
+function resetPasswordForm() {
+  passwordForm.oldPassword = ''
+  passwordForm.newPassword = ''
+  passwordForm.confirmPassword = ''
+}
 
 async function logout() {
   try {
@@ -61,6 +94,41 @@ async function logout() {
   }
   clearAuth()
   router.replace('/login')
+}
+
+function cancelChangePassword() {
+  passwordDialogVisible.value = false
+  resetPasswordForm()
+}
+
+async function submitChangePassword() {
+  if (!passwordForm.oldPassword || !passwordForm.newPassword || !passwordForm.confirmPassword) {
+    ElMessage.warning('请完整填写密码信息')
+    return
+  }
+  if (passwordForm.newPassword.length < 6) {
+    ElMessage.warning('新密码长度至少 6 位')
+    return
+  }
+  if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+    ElMessage.warning('两次输入的新密码不一致')
+    return
+  }
+
+  changingPassword.value = true
+  try {
+    await changeOwnPassword({
+      oldPassword: passwordForm.oldPassword,
+      newPassword: passwordForm.newPassword
+    })
+    ElMessage.success('密码修改成功')
+    passwordDialogVisible.value = false
+    resetPasswordForm()
+  } catch (error) {
+    ElMessage.error(error?.response?.data?.message || error.message || '密码修改失败')
+  } finally {
+    changingPassword.value = false
+  }
 }
 </script>
 

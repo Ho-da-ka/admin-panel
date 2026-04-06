@@ -24,6 +24,9 @@
       <el-table-column prop="id" label="ID" width="70" />
       <el-table-column prop="studentNo" label="学号" width="120" />
       <el-table-column prop="name" label="姓名" width="120" />
+      <el-table-column label="登录账号" min-width="150">
+        <template #default="scope">{{ studentLoginUsername(scope.row.studentNo) }}</template>
+      </el-table-column>
       <el-table-column label="性别" width="100">
         <template #default="scope">{{ genderText(scope.row.gender) }}</template>
       </el-table-column>
@@ -34,10 +37,13 @@
         <template #default="scope">{{ studentStatusText(scope.row.status) }}</template>
       </el-table-column>
       <el-table-column prop="updatedAt" label="更新时间" min-width="170" />
-      <el-table-column label="操作" width="200" fixed="right">
+      <el-table-column label="操作" width="390" fixed="right">
         <template #default="scope">
           <el-button size="small" @click="openDetail(scope.row.id)">详情</el-button>
           <el-button v-if="isAdmin" size="small" type="primary" @click="openEdit(scope.row)">编辑</el-button>
+          <el-button v-if="isAdmin" size="small" type="warning" @click="handleSetPassword(scope.row)">改密</el-button>
+          <el-button v-if="isAdmin" size="small" type="info" @click="handleResetPassword(scope.row)">重置密码</el-button>
+          <el-button v-if="isAdmin" size="small" type="danger" @click="handleDelete(scope.row)">删除</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -104,8 +110,8 @@
 
 <script setup>
 import { computed, onMounted, reactive, ref, watch } from 'vue'
-import { ElMessage } from 'element-plus'
-import { createStudent, getStudent, listStudents, updateStudent } from '../../api/modules'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import { adminResetPassword, adminSetPassword, createStudent, deleteStudent, getStudent, listStudents, updateStudent } from '../../api/modules'
 import { getRole } from '../../utils/auth'
 import { clearDraft, loadDraft, saveDraft } from '../../utils/draft'
 import { GUARDIAN_PHONE_REGEX, isFutureDate, normalizeText } from '../../utils/validators'
@@ -152,6 +158,10 @@ function genderText(value) {
 
 function studentStatusText(value) {
   return value === 'ACTIVE' ? '在训' : value === 'INACTIVE' ? '停训' : '-'
+}
+
+function studentLoginUsername(studentNo) {
+  return `student_${String(studentNo || '').toLowerCase()}`
 }
 
 function resetForm() {
@@ -260,8 +270,12 @@ async function submitForm() {
   saving.value = true
   try {
     if (formMode.value === 'create') {
-      await createStudent(payload)
-      ElMessage.success('学员创建成功')
+      const created = await createStudent(payload)
+      const username = studentLoginUsername(created.studentNo)
+      const initialPassword = `${created.studentNo}@123`
+      ElMessageBox.alert(`创建成功\n账号：${username}\n初始密码：${initialPassword}`, '学员创建成功', {
+        confirmButtonText: '我知道了'
+      })
     } else {
       await updateStudent(editingId.value, {
         name: payload.name,
@@ -282,6 +296,62 @@ async function submitForm() {
     ElMessage.error(error?.response?.data?.message || error.message || '保存失败')
   } finally {
     saving.value = false
+  }
+}
+
+async function handleSetPassword(row) {
+  try {
+    const username = studentLoginUsername(row.studentNo)
+    const { value } = await ElMessageBox.prompt(`为账号 ${username} 设置新密码`, '管理员改密', {
+      confirmButtonText: '保存',
+      cancelButtonText: '取消',
+      inputType: 'password',
+      inputPlaceholder: '请输入新密码（至少6位）',
+      inputValidator: (value) => (value && value.length >= 6 ? true : '新密码至少6位')
+    })
+
+    await adminSetPassword({
+      username,
+      newPassword: value
+    })
+    ElMessage.success(`账号 ${username} 密码已更新`)
+  } catch (error) {
+    if (error === 'cancel' || error === 'close') return
+    ElMessage.error(error?.response?.data?.message || error.message || '改密失败')
+  }
+}
+
+async function handleResetPassword(row) {
+  const username = studentLoginUsername(row.studentNo)
+  try {
+    await ElMessageBox.confirm(`确认将账号 ${username} 密码重置为初始密码吗？`, '重置密码确认', {
+      type: 'warning',
+      confirmButtonText: '重置',
+      cancelButtonText: '取消'
+    })
+    const result = await adminResetPassword({ username })
+    ElMessageBox.alert(`账号：${result.username}\n初始密码：${result.newPassword}`, '重置成功', {
+      confirmButtonText: '我知道了'
+    })
+  } catch (error) {
+    if (error === 'cancel' || error === 'close') return
+    ElMessage.error(error?.response?.data?.message || error.message || '重置密码失败')
+  }
+}
+
+async function handleDelete(row) {
+  try {
+    await ElMessageBox.confirm(`确认删除学员“${row.name}”吗？`, '删除确认', {
+      type: 'warning',
+      confirmButtonText: '删除',
+      cancelButtonText: '取消'
+    })
+    await deleteStudent(row.id)
+    ElMessage.success('学员已删除')
+    fetchData()
+  } catch (error) {
+    if (error === 'cancel' || error === 'close') return
+    ElMessage.error(error?.response?.data?.message || error.message || '删除学员失败')
   }
 }
 

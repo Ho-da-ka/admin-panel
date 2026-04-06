@@ -25,6 +25,11 @@
       </el-table-column>
       <el-table-column prop="note" label="备注" min-width="160" />
       <el-table-column prop="updatedAt" label="更新时间" min-width="170" />
+      <el-table-column label="操作" width="110" fixed="right">
+        <template #default="scope">
+          <el-button size="small" type="danger" @click="handleDelete(scope.row)">删除</el-button>
+        </template>
+      </el-table-column>
     </el-table>
 
     <el-dialog v-model="dialogVisible" title="新增考勤" width="520px">
@@ -69,8 +74,8 @@
 
 <script setup>
 import { onMounted, reactive, ref, watch } from 'vue'
-import { ElMessage } from 'element-plus'
-import { createAttendance, listCourses, listStudents, searchAttendances } from '../../api/modules'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import { createAttendance, deleteAttendance, listCourses, listStudents, searchAttendances } from '../../api/modules'
 import { clearDraft, loadDraft, saveDraft } from '../../utils/draft'
 import { normalizeText } from '../../utils/validators'
 
@@ -180,6 +185,22 @@ function cancelForm() {
   dialogVisible.value = false
   clearDraft(FORM_DRAFT_KEY)
   resetForm()
+}
+
+async function handleDelete(row) {
+  try {
+    await ElMessageBox.confirm(`确认删除考勤记录 #${row.id} 吗？`, '删除确认', {
+      type: 'warning',
+      confirmButtonText: '删除',
+      cancelButtonText: '取消'
+    })
+    await deleteAttendance(row.id)
+    ElMessage.success('考勤记录已删除')
+    search()
+  } catch (error) {
+    if (error === 'cancel' || error === 'close') return
+    ElMessage.error(error?.response?.data?.message || error.message || '删除考勤失败')
+  }
 }
 
 watch(

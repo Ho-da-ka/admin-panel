@@ -24,6 +24,9 @@
       <el-table-column prop="id" label="ID" width="70" />
       <el-table-column prop="coachCode" label="教练编号" width="130" />
       <el-table-column prop="name" label="姓名" width="120" />
+      <el-table-column label="登录账号" min-width="150">
+        <template #default="{ row }">{{ coachLoginUsername(row.coachCode) }}</template>
+      </el-table-column>
       <el-table-column label="性别" width="100">
         <template #default="{ row }">{{ genderText(row.gender) }}</template>
       </el-table-column>
@@ -33,10 +36,12 @@
         <template #default="{ row }">{{ coachStatusText(row.status) }}</template>
       </el-table-column>
       <el-table-column prop="updatedAt" label="更新时间" min-width="170" />
-      <el-table-column label="操作" width="240" fixed="right">
+      <el-table-column label="操作" width="360" fixed="right">
         <template #default="{ row }">
           <el-button size="small" @click="openDetail(row.id)">详情</el-button>
           <el-button v-if="isAdmin" size="small" type="primary" @click="openEdit(row)">编辑</el-button>
+          <el-button v-if="isAdmin" size="small" type="warning" @click="handleSetPassword(row)">改密</el-button>
+          <el-button v-if="isAdmin" size="small" type="info" @click="handleResetPassword(row)">重置密码</el-button>
           <el-button v-if="isAdmin" size="small" type="danger" @click="handleDelete(row)">删除</el-button>
         </template>
       </el-table-column>
@@ -109,7 +114,7 @@
 <script setup>
 import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { createCoach, deleteCoach, getCoach, listCoaches, updateCoach } from '../../api/modules'
+import { adminResetPassword, adminSetPassword, createCoach, deleteCoach, getCoach, listCoaches, updateCoach } from '../../api/modules'
 import { getRole } from '../../utils/auth'
 import { clearDraft, loadDraft, saveDraft } from '../../utils/draft'
 import { GUARDIAN_PHONE_REGEX, normalizeText } from '../../utils/validators'
@@ -154,6 +159,10 @@ function genderText(value) {
 
 function coachStatusText(value) {
   return value === 'ACTIVE' ? '在职' : value === 'INACTIVE' ? '停用' : '-'
+}
+
+function coachLoginUsername(coachCode) {
+  return `coach_${String(coachCode || '').toLowerCase()}`
 }
 
 function resetForm() {
@@ -242,6 +251,46 @@ async function handleDelete(row) {
   }
 }
 
+async function handleSetPassword(row) {
+  try {
+    const username = coachLoginUsername(row.coachCode)
+    const { value } = await ElMessageBox.prompt(`为账号 ${username} 设置新密码`, '管理员改密', {
+      confirmButtonText: '保存',
+      cancelButtonText: '取消',
+      inputType: 'password',
+      inputPlaceholder: '请输入新密码（至少6位）',
+      inputValidator: (value) => (value && value.length >= 6 ? true : '新密码至少6位')
+    })
+
+    await adminSetPassword({
+      username,
+      newPassword: value
+    })
+    ElMessage.success(`账号 ${username} 密码已更新`)
+  } catch (error) {
+    if (error === 'cancel' || error === 'close') return
+    ElMessage.error(error?.response?.data?.message || error.message || '改密失败')
+  }
+}
+
+async function handleResetPassword(row) {
+  const username = coachLoginUsername(row.coachCode)
+  try {
+    await ElMessageBox.confirm(`确认将账号 ${username} 密码重置为初始密码吗？`, '重置密码确认', {
+      type: 'warning',
+      confirmButtonText: '重置',
+      cancelButtonText: '取消'
+    })
+    const result = await adminResetPassword({ username })
+    ElMessageBox.alert(`账号：${result.username}\n初始密码：${result.newPassword}`, '重置成功', {
+      confirmButtonText: '我知道了'
+    })
+  } catch (error) {
+    if (error === 'cancel' || error === 'close') return
+    ElMessage.error(error?.response?.data?.message || error.message || '重置密码失败')
+  }
+}
+
 async function submitForm() {
   const payload = {
     coachCode: normalizeText(form.coachCode),
@@ -271,8 +320,12 @@ async function submitForm() {
   saving.value = true
   try {
     if (formMode.value === 'create') {
-      await createCoach(payload)
-      ElMessage.success('教练创建成功')
+      const created = await createCoach(payload)
+      const username = coachLoginUsername(created.coachCode)
+      const initialPassword = `${created.coachCode}@123`
+      ElMessageBox.alert(`创建成功\n账号：${username}\n初始密码：${initialPassword}`, '教练创建成功', {
+        confirmButtonText: '我知道了'
+      })
     } else {
       await updateCoach(editingId.value, {
         name: payload.name,

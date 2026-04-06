@@ -20,6 +20,18 @@ export async function logout(payload) {
   return unwrap(await http.post('/auth/logout', payload || {}, { skipAuth: true }))
 }
 
+export async function changeOwnPassword(payload) {
+  return unwrap(await http.post('/auth/change-password', payload))
+}
+
+export async function adminSetPassword(payload) {
+  return unwrap(await http.put('/user-accounts/password', payload))
+}
+
+export async function adminResetPassword(payload) {
+  return unwrap(await http.post('/user-accounts/reset-password', payload))
+}
+
 export async function listStudents(params) {
   return unwrap(await http.get('/students', { params }))
 }
@@ -34,6 +46,10 @@ export async function createStudent(payload) {
 
 export async function updateStudent(id, payload) {
   return unwrap(await http.put(`/students/${id}`, payload))
+}
+
+export async function deleteStudent(id) {
+  return unwrap(await http.delete(`/students/${id}`))
 }
 
 export async function listCourses(params) {
@@ -82,6 +98,10 @@ export async function searchAttendances(params) {
 
 export async function createAttendance(payload) {
   return unwrap(await http.post('/attendances', payload))
+}
+
+export async function deleteAttendance(id) {
+  return unwrap(await http.delete(`/attendances/${id}`))
 }
 
 export async function listFitnessTests(params) {
