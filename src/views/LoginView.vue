@@ -33,6 +33,7 @@ import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { login } from '../api/modules'
 import { clearAuth, setAuth } from '../utils/auth'
+import { encryptLoginPassword } from '../utils/loginCrypto'
 
 const router = useRouter()
 const loading = ref(false)
@@ -57,9 +58,11 @@ async function handleLogin() {
 
   loading.value = true
   try {
+    const encryptedPayload = encryptLoginPassword(form.password)
     const authData = await login({
       username: form.username.trim(),
-      password: form.password
+      encryptedPassword: encryptedPayload.encryptedPassword,
+      iv: encryptedPayload.iv
     })
 
     if (!['ADMIN', 'COACH'].includes(authData.role)) {
