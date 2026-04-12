@@ -16,6 +16,10 @@
             <el-descriptions-item label="监护人">{{ profile.student?.guardianName }}</el-descriptions-item>
             <el-descriptions-item label="联系电话">{{ profile.student?.guardianPhone }}</el-descriptions-item>
             <el-descriptions-item label="状态">{{ profile.student?.status === 'ACTIVE' ? '在读' : '休学' }}</el-descriptions-item>
+            <el-descriptions-item label="阶段目标">{{ profile.student?.goalFocus || '-' }}</el-descriptions-item>
+            <el-descriptions-item label="训练标签">{{ profile.student?.trainingTags || '-' }}</el-descriptions-item>
+            <el-descriptions-item label="风险提示">{{ profile.student?.riskNotes || '-' }}</el-descriptions-item>
+            <el-descriptions-item label="目标周期">{{ goalPeriodText }}</el-descriptions-item>
           </el-descriptions>
         </el-card>
       </el-col>
@@ -74,21 +78,49 @@
           <el-table-column prop="durationMinutes" label="时长(分)" width="100" />
           <el-table-column prop="intensityLevel" label="强度" width="100" />
           <el-table-column prop="trainingContent" label="内容" min-width="200" show-overflow-tooltip />
+          <el-table-column prop="highlightNote" label="课堂亮点" min-width="160" show-overflow-tooltip />
+          <el-table-column prop="improvementNote" label="待改进点" min-width="160" show-overflow-tooltip />
+          <el-table-column prop="parentAction" label="家长配合" min-width="160" show-overflow-tooltip />
+          <el-table-column prop="nextStepSuggestion" label="下次建议" min-width="160" show-overflow-tooltip />
+          <el-table-column prop="aiSummary" label="家长摘要" min-width="180" show-overflow-tooltip />
           <el-table-column prop="coachComment" label="教练评语" min-width="180" show-overflow-tooltip />
         </el-table>
         <el-pagination v-model:current-page="trainingPage" v-model:page-size="trainingSize" :total="trainingTotal"
           layout="total, prev, pager, next" style="margin-top:12px" @current-change="loadTraining" @size-change="loadTraining" />
+      </el-tab-pane>
+      <el-tab-pane label="鍏冲鎻愰啋" name="alerts">
+        <div v-loading="careAlertsLoading">
+          <el-empty v-if="careAlerts.length === 0" description="鏆傛棤寰呰窡杩涚殑鎻愰啋" />
+          <el-timeline v-else>
+            <el-timeline-item
+              v-for="alert in careAlerts"
+              :key="alert.id"
+              :timestamp="formatDateTime(alert.triggeredAt)"
+              :type="alert.status === 'OPEN' ? 'danger' : 'success'"
+            >
+              <div class="alert-row">
+                <div>
+                  <div class="alert-title">{{ alert.alertTitle }}</div>
+                  <div class="alert-content">{{ alert.alertContent }}</div>
+                </div>
+                <el-tag :type="alert.status === 'OPEN' ? 'danger' : 'success'">
+                  {{ alert.status === 'OPEN' ? '寰呰窡杩?' : '宸茶В闄?' }}
+                </el-tag>
+              </div>
+            </el-timeline-item>
+          </el-timeline>
+        </div>
       </el-tab-pane>
     </el-tabs>
   </div>
 </template>
 
 <script setup>
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import {
-  getStudentProfile, getStudentAttendanceStats, getStudentFitnessTrends
+  getStudentProfile, getStudentAttendanceStats, getStudentFitnessTrends, getStudentCareAlerts
 } from '../../api/modules/students'
 import { listAttendances } from '../../api/modules/attendance'
 import { listFitnessTests } from '../../api/modules/fitness'
@@ -136,9 +168,18 @@ const trainingPage = ref(1)
 const trainingSize = ref(10)
 const trainingTotal = ref(0)
 
+const careAlerts = ref([])
+const careAlertsLoading = ref(false)
+
 const attendanceRateText = computed(() => {
   const r = profile.value.stats?.attendanceRate
   return r != null ? (r * 100).toFixed(1) + '%' : '-'
+})
+
+const goalPeriodText = computed(() => {
+  const student = profile.value.student || {}
+  if (!student.goalStartDate && !student.goalEndDate) return '-'
+  return `${student.goalStartDate || '-'} ~ ${student.goalEndDate || '-'}`
 })
 
 function statusText(v) {
@@ -170,6 +211,17 @@ async function loadTraining() {
     trainingRows.value = data.content
     trainingTotal.value = data.totalElements
   } catch (e) { ElMessage.error(e.message) } finally { trainingLoading.value = false }
+}
+
+async function loadCareAlerts() {
+  careAlertsLoading.value = true
+  try {
+    careAlerts.value = await getStudentCareAlerts(id)
+  } catch (e) { ElMessage.error(e.message) } finally { careAlertsLoading.value = false }
+}
+
+function formatDateTime(value) {
+  return value ? String(value).replace('T', ' ').slice(0, 16) : '-'
 }
 
 onMounted(async () => {
@@ -217,11 +269,14 @@ onMounted(async () => {
     }
   } catch (e) { ElMessage.error(e.message) } finally { loading.value = false }
 
-  await Promise.all([loadAttendance(), loadFitness(), loadTraining()])
+  await Promise.all([loadAttendance(), loadFitness(), loadTraining(), loadCareAlerts()])
 })
 </script>
 
 <style scoped>
 .stat-label { font-size: 13px; color: #909399; margin-bottom: 4px; }
 .stat-value { font-size: 24px; font-weight: 600; color: #303133; }
+.alert-row { display: flex; justify-content: space-between; gap: 16px; align-items: flex-start; }
+.alert-title { font-size: 14px; font-weight: 600; color: #303133; margin-bottom: 6px; }
+.alert-content { font-size: 13px; color: #606266; line-height: 1.6; }
 </style>

@@ -25,6 +25,11 @@
       <el-table-column prop="intensityLevel" label="强度" width="110" />
       <el-table-column prop="trainingContent" label="训练内容" min-width="220" show-overflow-tooltip />
       <el-table-column prop="performanceSummary" label="训练反馈" min-width="180" show-overflow-tooltip />
+      <el-table-column prop="highlightNote" label="课堂亮点" min-width="160" show-overflow-tooltip />
+      <el-table-column prop="improvementNote" label="待改进点" min-width="160" show-overflow-tooltip />
+      <el-table-column prop="parentAction" label="家长配合" min-width="160" show-overflow-tooltip />
+      <el-table-column prop="nextStepSuggestion" label="下次建议" min-width="160" show-overflow-tooltip />
+      <el-table-column prop="aiSummary" label="家长摘要" min-width="180" show-overflow-tooltip />
       <el-table-column prop="coachComment" label="教练评语" min-width="180" show-overflow-tooltip />
       <el-table-column prop="updatedAt" label="更新时间" min-width="170" />
       <el-table-column label="操作" width="150" fixed="right">
@@ -86,8 +91,28 @@
           <el-input v-model="form.performanceSummary" type="textarea" maxlength="255" show-word-limit />
         </el-form-item>
 
+        <el-form-item label="课堂亮点">
+          <el-input v-model="form.highlightNote" type="textarea" maxlength="255" show-word-limit />
+        </el-form-item>
+
+        <el-form-item label="待改进点">
+          <el-input v-model="form.improvementNote" type="textarea" maxlength="255" show-word-limit />
+        </el-form-item>
+
+        <el-form-item label="家长配合建议">
+          <el-input v-model="form.parentAction" type="textarea" maxlength="255" show-word-limit />
+        </el-form-item>
+
+        <el-form-item label="下次训练建议">
+          <el-input v-model="form.nextStepSuggestion" type="textarea" maxlength="255" show-word-limit />
+        </el-form-item>
+
+        <el-form-item label="家长摘要">
+          <el-input v-model="form.summaryForParent" type="textarea" maxlength="500" show-word-limit />
+        </el-form-item>
+
         <el-form-item label="教练评语">
-          <el-input v-model="form.coachComment" type="textarea" maxlength="255" show-word-limit />
+          <el-input v-model="form.coachComment" type="textarea" maxlength="500" show-word-limit />
         </el-form-item>
       </el-form>
 
@@ -144,6 +169,11 @@ const formDefaults = {
   durationMinutes: 60,
   intensityLevel: '',
   performanceSummary: '',
+  highlightNote: '',
+  improvementNote: '',
+  parentAction: '',
+  nextStepSuggestion: '',
+  summaryForParent: '',
   coachComment: ''
 }
 
@@ -165,6 +195,11 @@ function assignForm(payload) {
     durationMinutes: payload.durationMinutes ?? 60,
     intensityLevel: payload.intensityLevel ?? '',
     performanceSummary: payload.performanceSummary ?? '',
+    highlightNote: payload.highlightNote ?? '',
+    improvementNote: payload.improvementNote ?? '',
+    parentAction: payload.parentAction ?? '',
+    nextStepSuggestion: payload.nextStepSuggestion ?? '',
+    summaryForParent: payload.aiSummary ?? payload.summaryForParent ?? '',
     coachComment: payload.coachComment ?? ''
   })
 }
@@ -222,6 +257,11 @@ async function submit() {
     durationMinutes: form.durationMinutes,
     intensityLevel: normalizeText(form.intensityLevel),
     performanceSummary: normalizeText(form.performanceSummary),
+    highlightNote: normalizeText(form.highlightNote),
+    improvementNote: normalizeText(form.improvementNote),
+    parentAction: normalizeText(form.parentAction),
+    nextStepSuggestion: normalizeText(form.nextStepSuggestion),
+    summaryForParent: normalizeText(form.summaryForParent),
     coachComment: normalizeText(form.coachComment)
   }
 
@@ -296,6 +336,11 @@ function handleExport() {
     intensityLevel: item.intensityLevel || '',
     trainingContent: item.trainingContent || '',
     performanceSummary: item.performanceSummary || '',
+    highlightNote: item.highlightNote || '',
+    improvementNote: item.improvementNote || '',
+    parentAction: item.parentAction || '',
+    nextStepSuggestion: item.nextStepSuggestion || '',
+    aiSummary: item.aiSummary || '',
     coachComment: item.coachComment || ''
   }))
   exportToExcel(
@@ -309,6 +354,11 @@ function handleExport() {
       { label: '强度', prop: 'intensityLevel' },
       { label: '训练内容', prop: 'trainingContent' },
       { label: '训练反馈', prop: 'performanceSummary' },
+      { label: '课堂亮点', prop: 'highlightNote' },
+      { label: '待改进点', prop: 'improvementNote' },
+      { label: '家长配合', prop: 'parentAction' },
+      { label: '下次建议', prop: 'nextStepSuggestion' },
+      { label: '家长摘要', prop: 'aiSummary' },
       { label: '教练评语', prop: 'coachComment' }
     ],
     '训练记录'

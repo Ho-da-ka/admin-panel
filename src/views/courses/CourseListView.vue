@@ -27,6 +27,8 @@
       <el-table-column prop="courseCode" label="课程编码" width="130" />
       <el-table-column prop="name" label="课程名称" min-width="180" />
       <el-table-column prop="courseType" label="课程类型" width="140" />
+      <el-table-column prop="trainingTheme" label="训练主题" min-width="140" show-overflow-tooltip />
+      <el-table-column prop="targetAgeRange" label="适用年龄段" width="120" />
       <el-table-column prop="coachName" label="教练" width="120" />
       <el-table-column prop="venue" label="场地" min-width="140" />
       <el-table-column prop="startTime" label="开始时间" width="180" />
@@ -70,6 +72,24 @@
         </el-form-item>
         <el-form-item label="课程类型" required>
           <el-input v-model="form.courseType" maxlength="64" />
+        </el-form-item>
+        <el-row :gutter="12">
+          <el-col :span="12">
+            <el-form-item label="训练主题">
+              <el-input v-model="form.trainingTheme" maxlength="100" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="适用年龄段">
+              <el-input v-model="form.targetAgeRange" maxlength="32" placeholder="例如 7-9岁" />
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-form-item label="目标方向">
+          <el-input v-model="form.targetGoals" maxlength="255" type="textarea" show-word-limit />
+        </el-form-item>
+        <el-form-item label="训练重点">
+          <el-input v-model="form.focusPoints" maxlength="255" type="textarea" show-word-limit />
         </el-form-item>
         <el-form-item label="教练姓名" required>
           <el-select
@@ -164,6 +184,8 @@
               <el-descriptions-item label="课程编码">{{ detail.courseCode }}</el-descriptions-item>
               <el-descriptions-item label="课程名称">{{ detail.name }}</el-descriptions-item>
               <el-descriptions-item label="课程类型">{{ detail.courseType }}</el-descriptions-item>
+              <el-descriptions-item label="训练主题">{{ detail.trainingTheme || '-' }}</el-descriptions-item>
+              <el-descriptions-item label="适用年龄段">{{ detail.targetAgeRange || '-' }}</el-descriptions-item>
               <el-descriptions-item label="教练">{{ detail.coachName || '-' }}</el-descriptions-item>
               <el-descriptions-item label="场地">{{ detail.venue }}</el-descriptions-item>
               <el-descriptions-item label="开始时间">{{ detail.startTime }}</el-descriptions-item>
@@ -172,6 +194,8 @@
               <el-descriptions-item label="上课日期">{{ detail.courseDate || '-' }}</el-descriptions-item>
               <el-descriptions-item label="时间段">{{ formatTimeRange(detail.classStartTime, detail.classEndTime) }}</el-descriptions-item>
               <el-descriptions-item label="状态">{{ courseStatusText(detail.status) }}</el-descriptions-item>
+              <el-descriptions-item label="目标方向">{{ detail.targetGoals || '-' }}</el-descriptions-item>
+              <el-descriptions-item label="训练重点">{{ detail.focusPoints || '-' }}</el-descriptions-item>
               <el-descriptions-item label="描述">{{ detail.description || '-' }}</el-descriptions-item>
             </el-descriptions>
           </el-tab-pane>
@@ -294,6 +318,10 @@ function emptyForm() {
     courseDate: '',
     classStartTime: '',
     classEndTime: '',
+    trainingTheme: '',
+    targetAgeRange: '',
+    targetGoals: '',
+    focusPoints: '',
     status: 'PLANNED',
     description: ''
   }
@@ -462,6 +490,10 @@ function openEdit(row) {
     courseDate: row.courseDate || '',
     classStartTime: row.classStartTime || '',
     classEndTime: row.classEndTime || '',
+    trainingTheme: row.trainingTheme || '',
+    targetAgeRange: row.targetAgeRange || '',
+    targetGoals: row.targetGoals || '',
+    focusPoints: row.focusPoints || '',
     status: row.status,
     description: row.description
   })
@@ -517,6 +549,10 @@ async function submitForm() {
     courseDate: form.courseDate || null,
     classStartTime: form.classStartTime || null,
     classEndTime: form.classEndTime || null,
+    trainingTheme: normalizeText(form.trainingTheme),
+    targetAgeRange: normalizeText(form.targetAgeRange),
+    targetGoals: normalizeText(form.targetGoals),
+    focusPoints: normalizeText(form.focusPoints),
     status: form.status,
     description: normalizeText(form.description)
   }
@@ -560,6 +596,10 @@ async function submitForm() {
           courseDate: payload.courseDate,
           classStartTime: payload.classStartTime,
           classEndTime: payload.classEndTime,
+          trainingTheme: payload.trainingTheme,
+          targetAgeRange: payload.targetAgeRange,
+          targetGoals: payload.targetGoals,
+          focusPoints: payload.focusPoints,
           status: payload.status,
           description: payload.description
         }, { ignoreConflict })
