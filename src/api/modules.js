@@ -96,6 +96,10 @@ export async function searchAttendances(params) {
   return unwrap(await http.get('/attendances', { params }))
 }
 
+export async function updateAttendance(id, payload) {
+  return unwrap(await http.put(`/attendances/${id}`, payload))
+}
+
 export async function createAttendance(payload) {
   return unwrap(await http.post('/attendances', payload))
 }
@@ -112,8 +116,24 @@ export async function createFitnessTest(payload) {
   return unwrap(await http.post('/fitness-tests', payload))
 }
 
+export async function updateFitnessTest(id, payload) {
+  return unwrap(await http.put(`/fitness-tests/${id}`, payload))
+}
+
+export async function deleteFitnessTest(id) {
+  return unwrap(await http.delete(`/fitness-tests/${id}`))
+}
+
+export async function deleteCourse(id, force = false) {
+  return unwrap(await http.delete(`/courses/${id}`, { params: { force } }))
+}
+
 export async function listTrainingRecords(params) {
   return unwrap(await http.get('/training-records', { params }))
+}
+
+export async function deleteTrainingRecord(id) {
+  return unwrap(await http.delete(`/training-records/${id}`))
 }
 
 export async function getTrainingRecord(id) {

@@ -26,12 +26,26 @@
       <el-table-column prop="performanceSummary" label="训练反馈" min-width="180" show-overflow-tooltip />
       <el-table-column prop="coachComment" label="教练评语" min-width="180" show-overflow-tooltip />
       <el-table-column prop="updatedAt" label="更新时间" min-width="170" />
-      <el-table-column label="操作" width="100" fixed="right">
+      <el-table-column label="操作" width="150" fixed="right">
         <template #default="scope">
           <el-button link type="primary" @click="openEdit(scope.row)">编辑</el-button>
+          <el-button link type="danger" @click="handleDelete(scope.row)">删除</el-button>
         </template>
       </el-table-column>
     </el-table>
+
+    <el-empty v-if="!loading && rows.length === 0" description="暂无训练记录" />
+
+    <el-pagination
+      v-model:current-page="currentPage"
+      v-model:page-size="pageSize"
+      :total="total"
+      :page-sizes="[10, 20, 50]"
+      layout="total, sizes, prev, pager, next"
+      style="margin-top: 16px"
+      @size-change="search"
+      @current-change="search"
+    />
 
     <el-dialog v-model="dialogVisible" :title="dialogTitle" width="560px">
       <el-form label-position="top">
@@ -86,9 +100,10 @@
 
 <script setup>
 import { computed, onMounted, reactive, ref, watch } from 'vue'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import {
   createTrainingRecord,
+  deleteTrainingRecord,
   listCourses,
   listStudents,
   listTrainingRecords,
@@ -103,6 +118,9 @@ const FORM_DRAFT_KEY = 'trainingRecords.form'
 const loading = ref(false)
 const saving = ref(false)
 const dialogVisible = ref(false)
+const currentPage = ref(1)
+const pageSize = ref(20)
+const total = ref(0)
 const mode = ref('create')
 const editingId = ref(null)
 
@@ -161,12 +179,16 @@ async function loadOptions() {
 async function search() {
   loading.value = true
   try {
-    rows.value = await listTrainingRecords({
+    const data = await listTrainingRecords({
       studentId: filters.studentId || undefined,
       courseId: filters.courseId || undefined,
       startDate: filters.startDate || undefined,
-      endDate: filters.endDate || undefined
+      endDate: filters.endDate || undefined,
+      page: currentPage.value - 1,
+      size: pageSize.value
     })
+    rows.value = data.content
+    total.value = data.totalElements
   } catch (error) {
     ElMessage.error(error?.response?.data?.message || error.message || '查询训练记录失败')
   } finally {
@@ -223,6 +245,20 @@ async function submit() {
     ElMessage.error(error?.response?.data?.message || error.message || '保存训练记录失败')
   } finally {
     saving.value = false
+  }
+}
+
+async function handleDelete(row) {
+  try {
+    await ElMessageBox.confirm(`确认删除训练记录 #${row.id} 吗？`, '删除确认', {
+      type: 'warning', confirmButtonText: '删除', cancelButtonText: '取消'
+    })
+    await deleteTrainingRecord(row.id)
+    ElMessage.success('训练记录已删除')
+    search()
+  } catch (error) {
+    if (error === 'cancel' || error === 'close') return
+    ElMessage.error(error?.response?.data?.message || error.message || '删除失败')
   }
 }
 

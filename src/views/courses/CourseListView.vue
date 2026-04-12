@@ -34,10 +34,11 @@
       <el-table-column label="状态" width="120">
         <template #default="{ row }">{{ courseStatusText(row.status) }}</template>
       </el-table-column>
-      <el-table-column label="操作" width="200" fixed="right">
+      <el-table-column label="操作" width="240" fixed="right">
         <template #default="{ row }">
           <el-button size="small" @click="openDetail(row.id)">详情</el-button>
           <el-button v-if="isAdmin" size="small" type="primary" @click="openEdit(row)">编辑</el-button>
+          <el-button v-if="isAdmin" size="small" type="danger" @click="handleDelete(row)">删除</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -135,8 +136,8 @@
 
 <script setup>
 import { computed, onMounted, reactive, ref, watch } from 'vue'
-import { ElMessage } from 'element-plus'
-import { createCourse, getCourse, listCourses, listCoaches, updateCourse } from '../../api/modules'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import { createCourse, deleteCourse, getCourse, listCourses, listCoaches, updateCourse } from '../../api/modules'
 import { getRole } from '../../utils/auth'
 import { clearDraft, loadDraft, saveDraft } from '../../utils/draft'
 import { normalizeText } from '../../utils/validators'
@@ -232,6 +233,33 @@ function resetQuery() {
 function handleQuickSearch() {
   query.page = 0
   fetchData()
+}
+
+async function handleDelete(row) {
+  try {
+    await ElMessageBox.confirm(`确认删除课程「${row.name}」吗？`, '删除确认', {
+      type: 'warning', confirmButtonText: '删除', cancelButtonText: '取消'
+    })
+    try {
+      await deleteCourse(row.id)
+      ElMessage.success('课程已删除')
+      fetchData()
+    } catch (err) {
+      const msg = err?.response?.data?.message || err.message || ''
+      if (msg.includes('关联数据')) {
+        await ElMessageBox.confirm(msg + '\n\n是否强制删除（将同时删除关联的考勤和训练记录）？', '强制删除确认', {
+          type: 'warning', confirmButtonText: '强制删除', cancelButtonText: '取消'
+        })
+        await deleteCourse(row.id, true)
+        ElMessage.success('课程及关联数据已删除')
+        fetchData()
+      } else {
+        ElMessage.error(msg || '删除失败')
+      }
+    }
+  } catch (error) {
+    if (error === 'cancel' || error === 'close') return
+  }
 }
 
 function openCreate() {
