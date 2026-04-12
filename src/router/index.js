@@ -60,6 +60,12 @@ const routes = [
         name: 'training-records',
         component: () => import('../views/training/TrainingRecordView.vue'),
         meta: { title: '训练记录' }
+      },
+      {
+        path: 'stage-evaluations',
+        name: 'stage-evaluations',
+        component: () => import('../views/evaluations/StageEvaluationView.vue'),
+        meta: { title: '阶段评估' }
       }
     ]
   }

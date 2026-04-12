@@ -94,6 +94,33 @@
             <el-option label="停训" value="INACTIVE" />
           </el-select>
         </el-form-item>
+        <el-row :gutter="12">
+          <el-col :span="12">
+            <el-form-item label="阶段目标">
+              <el-input v-model="form.goalFocus" maxlength="255" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="训练标签">
+              <el-input v-model="form.trainingTags" maxlength="255" placeholder="如：核心稳定,柔韧性" />
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-form-item label="风险提示">
+          <el-input v-model="form.riskNotes" maxlength="255" />
+        </el-form-item>
+        <el-row :gutter="12">
+          <el-col :span="12">
+            <el-form-item label="目标开始日期">
+              <el-date-picker v-model="form.goalStartDate" value-format="YYYY-MM-DD" type="date" style="width: 100%" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="目标结束日期">
+              <el-date-picker v-model="form.goalEndDate" value-format="YYYY-MM-DD" type="date" style="width: 100%" />
+            </el-form-item>
+          </el-col>
+        </el-row>
         <el-form-item label="备注"><el-input v-model="form.remarks" maxlength="255" type="textarea" /></el-form-item>
       </el-form>
       <template #footer>
@@ -112,6 +139,10 @@
         <el-descriptions-item label="监护人">{{ detail.guardianName }}</el-descriptions-item>
         <el-descriptions-item label="电话">{{ detail.guardianPhone }}</el-descriptions-item>
         <el-descriptions-item label="状态">{{ studentStatusText(detail.status) }}</el-descriptions-item>
+        <el-descriptions-item label="阶段目标">{{ detail.goalFocus || '-' }}</el-descriptions-item>
+        <el-descriptions-item label="训练标签">{{ detail.trainingTags || '-' }}</el-descriptions-item>
+        <el-descriptions-item label="风险提示">{{ detail.riskNotes || '-' }}</el-descriptions-item>
+        <el-descriptions-item label="目标周期">{{ formatGoalPeriod(detail.goalStartDate, detail.goalEndDate) }}</el-descriptions-item>
         <el-descriptions-item label="备注">{{ detail.remarks }}</el-descriptions-item>
       </el-descriptions>
     </el-dialog>
@@ -171,6 +202,11 @@ function emptyForm() {
     guardianName: '',
     guardianPhone: '',
     status: 'ACTIVE',
+    goalFocus: '',
+    trainingTags: '',
+    riskNotes: '',
+    goalStartDate: '',
+    goalEndDate: '',
     remarks: ''
   }
 }
@@ -185,6 +221,11 @@ function studentStatusText(value) {
 
 function studentLoginUsername(studentNo) {
   return `student_${String(studentNo || '').toLowerCase()}`
+}
+
+function formatGoalPeriod(startDate, endDate) {
+  if (!startDate && !endDate) return '-'
+  return `${startDate || '-'} ~ ${endDate || '-'}`
 }
 
 function resetForm() {
@@ -237,6 +278,11 @@ function openEdit(row) {
     guardianName: row.guardianName,
     guardianPhone: row.guardianPhone,
     status: row.status,
+    goalFocus: row.goalFocus,
+    trainingTags: row.trainingTags,
+    riskNotes: row.riskNotes,
+    goalStartDate: row.goalStartDate,
+    goalEndDate: row.goalEndDate,
     remarks: row.remarks
   })
   formVisible.value = true
@@ -267,6 +313,11 @@ async function submitForm() {
     guardianName: normalizeText(form.guardianName),
     guardianPhone: normalizeText(form.guardianPhone),
     status: form.status,
+    goalFocus: normalizeText(form.goalFocus),
+    trainingTags: normalizeText(form.trainingTags),
+    riskNotes: normalizeText(form.riskNotes),
+    goalStartDate: form.goalStartDate || null,
+    goalEndDate: form.goalEndDate || null,
     remarks: normalizeText(form.remarks)
   }
 
@@ -282,6 +333,11 @@ async function submitForm() {
 
   if (!GUARDIAN_PHONE_REGEX.test(payload.guardianPhone || '')) {
     ElMessage.warning('监护人电话格式不正确（支持6-20位数字或+、-）')
+    return
+  }
+
+  if (payload.goalStartDate && payload.goalEndDate && payload.goalStartDate > payload.goalEndDate) {
+    ElMessage.warning('目标开始日期不能晚于结束日期')
     return
   }
 
@@ -307,6 +363,11 @@ async function submitForm() {
         guardianName: payload.guardianName,
         guardianPhone: payload.guardianPhone,
         status: payload.status,
+        goalFocus: payload.goalFocus,
+        trainingTags: payload.trainingTags,
+        riskNotes: payload.riskNotes,
+        goalStartDate: payload.goalStartDate,
+        goalEndDate: payload.goalEndDate,
         remarks: payload.remarks
       })
       ElMessage.success('学员更新成功')

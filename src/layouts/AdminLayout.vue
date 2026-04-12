@@ -10,6 +10,7 @@
         <el-menu-item index="/attendances">考勤管理</el-menu-item>
         <el-menu-item index="/fitness-tests">体测管理</el-menu-item>
         <el-menu-item index="/training-records">训练记录</el-menu-item>
+        <el-menu-item index="/stage-evaluations">阶段评估</el-menu-item>
       </el-menu>
     </el-aside>
 

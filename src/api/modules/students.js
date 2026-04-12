@@ -63,3 +63,11 @@ export async function getStudentFitnessTrends(id) {
   return unwrap(await http.get(`/students/${id}/fitness-trends`))
 }
 
+export async function listCareAlerts(params) {
+  return unwrap(await http.get('/care-alerts', { params }))
+}
+
+export async function getStudentCareAlerts(id) {
+  return listCareAlerts({ studentId: id })
+}
+
