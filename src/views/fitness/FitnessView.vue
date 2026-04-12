@@ -8,6 +8,7 @@
       </el-select>
       <el-button type="primary" @click="search">查询</el-button>
       <el-button type="success" @click="openCreate">新增体测</el-button>
+      <el-button @click="handleExport">导出 Excel</el-button>
     </div>
 
     <el-table :data="rows" v-loading="loading" stripe>
@@ -90,8 +91,10 @@
 <script setup>
 import { onMounted, reactive, ref, watch } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { createFitnessTest, deleteFitnessTest, listFitnessTests, listStudents, updateFitnessTest } from '../../api/modules'
+import { createFitnessTest, deleteFitnessTest, listFitnessTests, updateFitnessTest } from '../../api/modules/fitness'
+import { listStudents } from '../../api/modules/students'
 import { clearDraft, loadDraft, saveDraft } from '../../utils/draft'
+import { exportToExcel } from '../../utils/export'
 import { normalizeText } from '../../utils/validators'
 
 const FITNESS_ITEMS = [
@@ -232,6 +235,31 @@ async function handleDelete(row) {
 
 watch(filters, () => saveDraft(FILTER_DRAFT_KEY, { ...filters }), { deep: true })
 watch(form, () => { if (dialogVisible.value && !editId.value) saveDraft(FORM_DRAFT_KEY, { ...form }) }, { deep: true })
+
+function handleExport() {
+  const data = rows.value.map((item) => ({
+    id: item.id,
+    studentName: item.studentName,
+    testDate: item.testDate,
+    itemName: item.itemName,
+    testValue: item.testValue,
+    unit: item.unit,
+    comment: item.comment || ''
+  }))
+  exportToExcel(
+    data,
+    [
+      { label: 'ID', prop: 'id' },
+      { label: '学员', prop: 'studentName' },
+      { label: '日期', prop: 'testDate' },
+      { label: '项目', prop: 'itemName' },
+      { label: '数值', prop: 'testValue' },
+      { label: '单位', prop: 'unit' },
+      { label: '评语', prop: 'comment' }
+    ],
+    '体测记录'
+  )
+}
 
 onMounted(async () => {
   try {

@@ -56,7 +56,7 @@
 import { computed, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { changeOwnPassword, logout as requestLogout } from '../api/modules'
+import { changeOwnPassword, logout as requestLogout } from '../api/modules/auth'
 import { clearAuth, getDisplayName, getRole } from '../utils/auth'
 
 const route = useRoute()

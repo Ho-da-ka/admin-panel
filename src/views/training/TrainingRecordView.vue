@@ -13,6 +13,7 @@
       <el-date-picker v-model="filters.endDate" value-format="YYYY-MM-DD" type="date" placeholder="结束日期" @change="search" />
       <el-button type="primary" @click="search">查询</el-button>
       <el-button type="success" @click="openCreate">新增训练记录</el-button>
+      <el-button @click="handleExport">导出 Excel</el-button>
     </div>
 
     <el-table :data="rows" v-loading="loading" stripe>
@@ -104,12 +105,13 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import {
   createTrainingRecord,
   deleteTrainingRecord,
-  listCourses,
-  listStudents,
   listTrainingRecords,
   updateTrainingRecord
-} from '../../api/modules'
+} from '../../api/modules/training'
+import { listCourses } from '../../api/modules/courses'
+import { listStudents } from '../../api/modules/students'
 import { clearDraft, loadDraft, saveDraft } from '../../utils/draft'
+import { exportToExcel } from '../../utils/export'
 import { normalizeText } from '../../utils/validators'
 
 const FILTER_DRAFT_KEY = 'trainingRecords.filters'
@@ -283,6 +285,35 @@ watch(
   },
   { deep: true }
 )
+
+function handleExport() {
+  const data = rows.value.map((item) => ({
+    id: item.id,
+    studentName: item.studentName,
+    courseName: item.courseName,
+    trainingDate: item.trainingDate,
+    durationMinutes: item.durationMinutes,
+    intensityLevel: item.intensityLevel || '',
+    trainingContent: item.trainingContent || '',
+    performanceSummary: item.performanceSummary || '',
+    coachComment: item.coachComment || ''
+  }))
+  exportToExcel(
+    data,
+    [
+      { label: 'ID', prop: 'id' },
+      { label: '学员', prop: 'studentName' },
+      { label: '课程', prop: 'courseName' },
+      { label: '日期', prop: 'trainingDate' },
+      { label: '时长(分钟)', prop: 'durationMinutes' },
+      { label: '强度', prop: 'intensityLevel' },
+      { label: '训练内容', prop: 'trainingContent' },
+      { label: '训练反馈', prop: 'performanceSummary' },
+      { label: '教练评语', prop: 'coachComment' }
+    ],
+    '训练记录'
+  )
+}
 
 onMounted(async () => {
   try {

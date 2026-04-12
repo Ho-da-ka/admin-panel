@@ -17,6 +17,15 @@
       </el-select>
       <el-button type="primary" @click="fetchData">查询</el-button>
       <el-button @click="resetQuery">重置</el-button>
+      <el-button @click="handleExport">导出 Excel</el-button>
+      <el-button @click="handleDownloadTemplate">下载导入模板</el-button>
+      <el-upload
+        :show-file-list="false"
+        accept=".xlsx,.xls"
+        :http-request="handleImportRequest"
+      >
+        <el-button :loading="importing">导入 Excel</el-button>
+      </el-upload>
       <el-button v-if="isAdmin" type="success" @click="openCreate">新增学员</el-button>
     </div>
 
@@ -39,7 +48,7 @@
       <el-table-column prop="updatedAt" label="更新时间" min-width="170" />
       <el-table-column label="操作" width="390" fixed="right">
         <template #default="scope">
-          <el-button size="small" @click="openDetail(scope.row.id)">详情</el-button>
+          <el-button size="small" @click="openProfile(scope.row.id)">详情</el-button>
           <el-button v-if="isAdmin" size="small" type="primary" @click="openEdit(scope.row)">编辑</el-button>
           <el-button v-if="isAdmin" size="small" type="warning" @click="handleSetPassword(scope.row)">改密</el-button>
           <el-button v-if="isAdmin" size="small" type="info" @click="handleResetPassword(scope.row)">重置密码</el-button>
@@ -47,6 +56,7 @@
         </template>
       </el-table-column>
     </el-table>
+    <el-empty v-if="!loading && rows.length === 0" description="暂无学员数据" />
 
     <div style="margin-top: 12px; display: flex; justify-content: flex-end">
       <el-pagination
@@ -110,19 +120,32 @@
 
 <script setup>
 import { computed, onMounted, reactive, ref, watch } from 'vue'
+import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { adminResetPassword, adminSetPassword, createStudent, deleteStudent, getStudent, listStudents, updateStudent } from '../../api/modules'
+import {
+  createStudent,
+  deleteStudent,
+  downloadStudentImportTemplate,
+  getStudent,
+  importStudents,
+  listStudents,
+  updateStudent
+} from '../../api/modules/students'
+import { adminResetPassword, adminSetPassword } from '../../api/modules/auth'
 import { getRole } from '../../utils/auth'
 import { clearDraft, loadDraft, saveDraft } from '../../utils/draft'
+import { exportToExcel } from '../../utils/export'
 import { GUARDIAN_PHONE_REGEX, isFutureDate, normalizeText } from '../../utils/validators'
 
 const QUERY_DRAFT_KEY = 'students.query'
 const FORM_DRAFT_KEY = 'students.form'
 
 const isAdmin = getRole() === 'ADMIN'
+const router = useRouter()
 
 const loading = ref(false)
 const saving = ref(false)
+const importing = ref(false)
 const rows = ref([])
 const total = ref(0)
 
@@ -299,6 +322,10 @@ async function submitForm() {
   }
 }
 
+function openProfile(id) {
+  router.push(`/students/${id}/profile`)
+}
+
 async function handleSetPassword(row) {
   try {
     const username = studentLoginUsername(row.studentNo)
@@ -364,6 +391,61 @@ function handleSizeChange(sizeValue) {
   query.size = sizeValue
   query.page = 0
   fetchData()
+}
+
+function handleExport() {
+  const data = rows.value.map((item) => ({
+    id: item.id,
+    studentNo: item.studentNo,
+    name: item.name,
+    gender: genderText(item.gender),
+    status: studentStatusText(item.status),
+    guardianName: item.guardianName || '',
+    guardianPhone: item.guardianPhone || ''
+  }))
+  exportToExcel(
+    data,
+    [
+      { label: 'ID', prop: 'id' },
+      { label: '学号', prop: 'studentNo' },
+      { label: '姓名', prop: 'name' },
+      { label: '性别', prop: 'gender' },
+      { label: '状态', prop: 'status' },
+      { label: '监护人', prop: 'guardianName' },
+      { label: '监护人电话', prop: 'guardianPhone' }
+    ],
+    '学员列表'
+  )
+}
+
+async function handleDownloadTemplate() {
+  try {
+    await downloadStudentImportTemplate()
+    ElMessage.success('模板下载成功')
+  } catch (error) {
+    ElMessage.error(error?.response?.data?.message || error.message || '模板下载失败')
+  }
+}
+
+async function handleImportRequest(options) {
+  importing.value = true
+  try {
+    const result = await importStudents(options.file)
+    const errors = (result.errors || []).slice(0, 10)
+    const errorText = errors.length > 0 ? `\n失败明细：\n${errors.join('\n')}` : ''
+    await ElMessageBox.alert(
+      `成功：${result.successCount}\n失败：${result.failCount}${errorText}`,
+      '导入完成',
+      { confirmButtonText: '确定' }
+    )
+    await fetchData()
+    options.onSuccess?.()
+  } catch (error) {
+    ElMessage.error(error?.response?.data?.message || error.message || '导入失败')
+    options.onError?.(error)
+  } finally {
+    importing.value = false
+  }
 }
 
 watch(

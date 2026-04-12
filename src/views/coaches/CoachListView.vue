@@ -46,6 +46,7 @@
         </template>
       </el-table-column>
     </el-table>
+    <el-empty v-if="!loading && rows.length === 0" description="暂无教练数据" />
 
     <div style="margin-top: 12px; display: flex; justify-content: flex-end">
       <el-pagination
@@ -114,7 +115,8 @@
 <script setup>
 import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { adminResetPassword, adminSetPassword, createCoach, deleteCoach, getCoach, listCoaches, updateCoach } from '../../api/modules'
+import { adminResetPassword, adminSetPassword } from '../../api/modules/auth'
+import { createCoach, deleteCoach, getCoach, listCoaches, updateCoach } from '../../api/modules/coaches'
 import { getRole } from '../../utils/auth'
 import { clearDraft, loadDraft, saveDraft } from '../../utils/draft'
 import { GUARDIAN_PHONE_REGEX, normalizeText } from '../../utils/validators'

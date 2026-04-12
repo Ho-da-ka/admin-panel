@@ -1,4 +1,4 @@
-import axios from 'axios'
+﻿import axios from 'axios'
 import { ElMessage } from 'element-plus'
 import { clearAuth, getAccessToken, getAuth, getRefreshToken, setAuth } from '../utils/auth'
 
@@ -82,6 +82,16 @@ http.interceptors.response.use(
         ElMessage.error('登录状态已失效，请重新登录')
         redirectToLogin()
         return Promise.reject(error)
+      }
+    }
+
+    if (!originalRequest?._isRefreshCall && status !== 401) {
+      if (status === 403) {
+        ElMessage.error('权限不足，无法执行此操作')
+      } else if (status >= 500) {
+        ElMessage.error('服务器内部错误，请稍后重试')
+      } else if (!status) {
+        ElMessage.error('网络请求超时，请检查网络连接')
       }
     }
 

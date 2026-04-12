@@ -31,7 +31,7 @@
 import { reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { login } from '../api/modules'
+import { login } from '../api/modules/auth'
 import { clearAuth, setAuth } from '../utils/auth'
 import { encryptLoginPassword } from '../utils/loginCrypto'
 
