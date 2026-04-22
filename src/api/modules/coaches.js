@@ -31,4 +31,3 @@ export async function updateCoach(id, payload) {
 export async function deleteCoach(id) {
   return unwrap(await http.delete(`/coaches/${id}`))
 }
-

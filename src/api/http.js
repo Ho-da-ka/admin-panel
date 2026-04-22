@@ -87,10 +87,16 @@ http.interceptors.response.use(
 
     if (!originalRequest?._isRefreshCall && status !== 401) {
       if (status === 403) {
+        error.userMessage = '权限不足，无法执行此操作'
+        error.globalMessageHandled = true
         ElMessage.error('权限不足，无法执行此操作')
       } else if (status >= 500) {
+        error.userMessage = error?.response?.data?.message || '服务器内部错误，请稍后重试'
+        error.globalMessageHandled = true
         ElMessage.error('服务器内部错误，请稍后重试')
       } else if (!status) {
+        error.userMessage = '网络请求超时，请检查网络连接'
+        error.globalMessageHandled = true
         ElMessage.error('网络请求超时，请检查网络连接')
       }
     }

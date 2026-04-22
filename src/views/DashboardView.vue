@@ -114,14 +114,22 @@ useChart(coachBarRef, coachBarOption)
 
 const attendanceRateText = computed(() => {
   const rate = stats.value.attendance?.thisMonthRate
-  return rate != null ? (rate * 100).toFixed(1) + '%' : '-'
+  return rate != null ? `${(rate * 100).toFixed(1)}%` : '-'
 })
+
+function showRequestError(error, fallbackMessage) {
+  const message = error?.response?.data?.message || error?.userMessage || fallbackMessage
+  if (!error?.globalMessageHandled || error?.response?.data?.message) {
+    ElMessage.error(message)
+  }
+}
 
 function formatDateTime(value) {
   return value ? String(value).replace('T', ' ').slice(0, 16) : '-'
 }
 
 function goStudentProfile(studentId) {
+  if (!studentId) return
   router.push({ name: 'student-profile', params: { id: studentId } })
 }
 
@@ -130,7 +138,7 @@ async function loadCareAlerts() {
   try {
     careAlerts.value = await listCareAlerts({ status: 'OPEN', limit: 6 })
   } catch (error) {
-    ElMessage.error(error?.response?.data?.message || error.message || '加载关怀提醒失败')
+    showRequestError(error, '加载关怀提醒失败')
   } finally {
     careAlertLoading.value = false
   }
@@ -139,62 +147,73 @@ async function loadCareAlerts() {
 onMounted(async () => {
   try {
     const [dashData, workload] = await Promise.all([getDashboardStats(), getCoachWorkload()])
-    stats.value = dashData
+    const attendance = dashData?.attendance || {}
+    const days = Array.isArray(attendance.last7Days) ? attendance.last7Days : []
+    const students = dashData?.students || {}
+    const courses = dashData?.courses || {}
+    const coachList = Array.isArray(workload) ? workload : []
 
-    const days = dashData.attendance?.last7Days || []
+    stats.value = dashData || {}
+
     attendanceOption.value = {
       tooltip: { trigger: 'axis' },
       legend: { bottom: 0 },
-      xAxis: { type: 'category', data: days.map((d) => d.date.slice(5)) },
+      xAxis: { type: 'category', data: days.map((item) => String(item.date || '').slice(5)) },
       yAxis: { type: 'value', minInterval: 1 },
       series: [
-        { name: '出勤', type: 'line', smooth: true, data: days.map((d) => d.present) },
-        { name: '总计', type: 'line', smooth: true, lineStyle: { type: 'dashed' }, data: days.map((d) => d.total) }
+        { name: '出勤', type: 'line', smooth: true, data: days.map((item) => item.present || 0) },
+        { name: '总计', type: 'line', smooth: true, lineStyle: { type: 'dashed' }, data: days.map((item) => item.total || 0) }
       ]
     }
 
-    const students = dashData.students || {}
     studentPieOption.value = {
       tooltip: { trigger: 'item' },
       legend: { bottom: 0 },
-      series: [{
-        type: 'pie',
-        radius: '60%',
-        data: [
-          { name: '在读', value: students.active ?? 0 },
-          { name: '休学', value: students.inactive ?? 0 }
-        ]
-      }]
+      series: [
+        {
+          type: 'pie',
+          radius: '60%',
+          data: [
+            { name: '在读', value: students.active || 0 },
+            { name: '休学', value: students.inactive || 0 }
+          ]
+        }
+      ]
     }
 
-    const courses = dashData.courses || {}
     coursePieOption.value = {
       tooltip: { trigger: 'item' },
       legend: { bottom: 0 },
-      series: [{
-        type: 'pie',
-        radius: '60%',
-        data: [
-          { name: '待开课', value: courses.planned ?? 0 },
-          { name: '进行中', value: courses.ongoing ?? 0 },
-          { name: '已完成', value: courses.completed ?? 0 },
-          { name: '已取消', value: courses.cancelled ?? 0 }
-        ].filter((item) => item.value > 0)
-      }]
+      series: [
+        {
+          type: 'pie',
+          radius: '60%',
+          data: [
+            { name: '待开课', value: courses.planned || 0 },
+            { name: '进行中', value: courses.ongoing || 0 },
+            { name: '已完成', value: courses.completed || 0 },
+            { name: '已取消', value: courses.cancelled || 0 }
+          ].filter((item) => item.value > 0)
+        }
+      ]
     }
 
     coachBarOption.value = {
       tooltip: { trigger: 'axis' },
       legend: { bottom: 0 },
-      xAxis: { type: 'category', data: workload.map((item) => item.coachName), axisLabel: { rotate: 30 } },
+      xAxis: {
+        type: 'category',
+        data: coachList.map((item) => item.coachName),
+        axisLabel: { rotate: 30 }
+      },
       yAxis: { type: 'value', minInterval: 1 },
       series: [
-        { name: '课程数', type: 'bar', data: workload.map((item) => item.courseCount) },
-        { name: '训练记录', type: 'bar', data: workload.map((item) => item.trainingCount) }
+        { name: '课程数', type: 'bar', data: coachList.map((item) => item.courseCount || 0) },
+        { name: '训练记录', type: 'bar', data: coachList.map((item) => item.trainingCount || 0) }
       ]
     }
   } catch (error) {
-    ElMessage.error(error?.response?.data?.message || error.message || '加载统计数据失败')
+    showRequestError(error, '加载统计数据失败')
   }
 
   await loadCareAlerts()
@@ -202,16 +221,77 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.stat-label { font-size: 13px; color: #909399; margin-bottom: 8px; }
-.stat-value { font-size: 28px; font-weight: 600; color: #303133; }
-.stat-sub { font-size: 12px; color: #c0c4cc; margin-top: 4px; }
-.alert-list { display: flex; flex-direction: column; gap: 12px; }
-.alert-item { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 14px 0; border-bottom: 1px solid #ebeef5; }
-.alert-item:last-child { border-bottom: none; padding-bottom: 0; }
-.alert-main { flex: 1; min-width: 0; }
-.alert-title-row { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
-.alert-title { font-size: 15px; font-weight: 600; color: #303133; }
-.alert-student { font-size: 13px; color: #409eff; margin-bottom: 6px; }
-.alert-content { font-size: 13px; color: #606266; line-height: 1.6; }
-.alert-meta { font-size: 12px; color: #909399; margin-top: 8px; }
+.stat-label {
+  font-size: 13px;
+  color: #909399;
+  margin-bottom: 8px;
+}
+
+.stat-value {
+  font-size: 28px;
+  font-weight: 600;
+  color: #303133;
+}
+
+.stat-sub {
+  font-size: 12px;
+  color: #c0c4cc;
+  margin-top: 4px;
+}
+
+.alert-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.alert-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 0;
+  border-bottom: 1px solid #ebeef5;
+}
+
+.alert-item:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.alert-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.alert-title-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+.alert-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #303133;
+}
+
+.alert-student {
+  font-size: 13px;
+  color: #409eff;
+  margin-bottom: 6px;
+}
+
+.alert-content {
+  font-size: 13px;
+  color: #606266;
+  line-height: 1.6;
+}
+
+.alert-meta {
+  font-size: 12px;
+  color: #909399;
+  margin-top: 8px;
+}
 </style>

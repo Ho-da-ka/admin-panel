@@ -5,6 +5,7 @@
       <el-menu :default-active="activePath" router class="menu">
         <el-menu-item index="/dashboard">仪表盘</el-menu-item>
         <el-menu-item index="/students">学员管理</el-menu-item>
+        <el-menu-item v-if="isAdmin" index="/parents">家长管理</el-menu-item>
         <el-menu-item index="/coaches">教练管理</el-menu-item>
         <el-menu-item index="/courses">课程管理</el-menu-item>
         <el-menu-item index="/attendances">考勤管理</el-menu-item>
@@ -26,9 +27,7 @@
       </el-header>
       <el-main class="main">
         <router-view v-slot="{ Component }">
-          <keep-alive>
-            <component :is="Component" />
-          </keep-alive>
+          <component :is="Component" />
         </router-view>
       </el-main>
     </el-container>
@@ -65,6 +64,7 @@ const router = useRouter()
 
 const activePath = computed(() => route.path)
 const role = getRole()
+const isAdmin = role === 'ADMIN'
 const roleLabelMap = {
   ADMIN: '管理员',
   COACH: '教练',

@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="page-panel">
     <h2 class="page-title">课程管理</h2>
 
@@ -62,7 +62,12 @@
       />
     </div>
 
-    <el-dialog v-model="formVisible" :title="formMode === 'create' ? '新增课程' : '编辑课程'" width="620px">
+    <el-dialog
+      v-model="formVisible"
+      :title="formMode === 'create' ? '新增课程' : '编辑课程'"
+      width="620px"
+      :close-on-click-modal="false"
+    >
       <el-form label-position="top">
         <el-form-item v-if="formMode === 'create'" label="课程编码" required>
           <el-input v-model="form.courseCode" maxlength="32" />
@@ -113,12 +118,11 @@
           <el-input v-model="form.venue" maxlength="128" />
         </el-form-item>
         <el-form-item label="开始时间" required>
-          <el-date-picker
+          <input
             v-model="form.startTime"
-            value-format="YYYY-MM-DDTHH:mm:ss"
-            type="datetime"
-            style="width: 100%"
-          />
+            class="native-field"
+            type="datetime-local"
+          >
         </el-form-item>
         <el-form-item label="时长（分钟）" required>
           <el-input-number v-model="form.durationMinutes" :min="1" style="width: 100%" />
@@ -127,33 +131,29 @@
           <el-input-number v-model="form.maxCapacity" :min="1" :step="1" style="width: 100%" placeholder="不填则不限" />
         </el-form-item>
         <el-form-item label="上课日期">
-          <el-date-picker
+          <input
             v-model="form.courseDate"
-            value-format="YYYY-MM-DD"
+            class="native-field"
             type="date"
-            style="width: 100%"
-            placeholder="选填，配合时间冲突检测"
-          />
+          >
         </el-form-item>
         <el-row :gutter="12">
           <el-col :span="12">
             <el-form-item label="开始时间">
-              <el-time-picker
+              <input
                 v-model="form.classStartTime"
-                value-format="HH:mm:ss"
-                placeholder="选填"
-                style="width: 100%"
-              />
+                class="native-field"
+                type="time"
+              >
             </el-form-item>
           </el-col>
           <el-col :span="12">
             <el-form-item label="结束时间">
-              <el-time-picker
+              <input
                 v-model="form.classEndTime"
-                value-format="HH:mm:ss"
-                placeholder="选填"
-                style="width: 100%"
-              />
+                class="native-field"
+                type="time"
+              >
             </el-form-item>
           </el-col>
         </el-row>
@@ -261,6 +261,7 @@ import {
   getCourse,
   getCourseAttendanceStats,
   getCourseStudents,
+  listCourses,
   updateCourse
 } from '../../api/modules/courses'
 import { listCoaches } from '../../api/modules/coaches'
@@ -327,6 +328,48 @@ function emptyForm() {
   }
 }
 
+function normalizeDateTimeLocal(value) {
+  if (typeof value !== 'string') return ''
+  const normalized = value.trim().replace(' ', 'T')
+  const match = normalized.match(/^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2})(:\d{2})?$/)
+  return match ? match[1] : ''
+}
+
+function normalizeDateValue(value) {
+  if (typeof value !== 'string') return ''
+  const normalized = value.trim()
+  return /^\d{4}-\d{2}-\d{2}$/.test(normalized) ? normalized : ''
+}
+
+function normalizeTimeValue(value) {
+  if (typeof value !== 'string') return ''
+  const normalized = value.trim()
+  const match = normalized.match(/^(\d{2}:\d{2})(:\d{2})?$/)
+  return match ? match[1] : ''
+}
+
+function sanitizeFormDraft(draft) {
+  return {
+    courseCode: normalizeText(draft?.courseCode),
+    name: normalizeText(draft?.name),
+    courseType: normalizeText(draft?.courseType),
+    coachName: normalizeText(draft?.coachName),
+    venue: normalizeText(draft?.venue),
+    startTime: normalizeDateTimeLocal(draft?.startTime),
+    durationMinutes: Number.isFinite(Number(draft?.durationMinutes)) ? Number(draft.durationMinutes) : 60,
+    maxCapacity: Number.isFinite(Number(draft?.maxCapacity)) ? Number(draft.maxCapacity) : null,
+    courseDate: normalizeDateValue(draft?.courseDate),
+    classStartTime: normalizeTimeValue(draft?.classStartTime),
+    classEndTime: normalizeTimeValue(draft?.classEndTime),
+    trainingTheme: normalizeText(draft?.trainingTheme),
+    targetAgeRange: normalizeText(draft?.targetAgeRange),
+    targetGoals: normalizeText(draft?.targetGoals),
+    focusPoints: normalizeText(draft?.focusPoints),
+    status: draft?.status || 'PLANNED',
+    description: normalizeText(draft?.description)
+  }
+}
+
 function courseStatusText(value) {
   const mapper = {
     PLANNED: '待开课',
@@ -361,6 +404,13 @@ function formatTimeRange(start, end) {
 
 function coachOptionLabel(item) {
   return `${item.name}${item.status === 'INACTIVE' ? '（已停用）' : ''}`
+}
+
+function showRequestError(error, fallbackMessage) {
+  const message = error?.response?.data?.message || error?.userMessage || fallbackMessage
+  if (!error?.globalMessageHandled || error?.response?.data?.message) {
+    ElMessage.error(message)
+  }
 }
 
 function resetForm() {
@@ -409,7 +459,7 @@ async function loadCoachOptions() {
     const data = await listCoaches({ page: 0, size: 200 })
     coachOptions.value = data.content
   } catch (error) {
-    ElMessage.error(error?.response?.data?.message || error.message || '加载教练列表失败')
+    showRequestError(error, '加载教练列表失败')
   }
 }
 
@@ -425,7 +475,7 @@ async function fetchData() {
     rows.value = data.content
     total.value = data.totalElements
   } catch (error) {
-    ElMessage.error(error?.response?.data?.message || error.message || '加载课程失败')
+    showRequestError(error, '加载课程失败')
   } finally {
     loading.value = false
   }
@@ -472,6 +522,9 @@ async function handleDelete(row) {
 function openCreate() {
   formMode.value = 'create'
   editingId.value = null
+  resetForm()
+  const cached = loadDraft(FORM_DRAFT_KEY, {})
+  Object.assign(form, sanitizeFormDraft(cached))
   formVisible.value = true
 }
 
@@ -484,12 +537,12 @@ function openEdit(row) {
     courseType: row.courseType,
     coachName: row.coachName,
     venue: row.venue,
-    startTime: row.startTime,
+    startTime: normalizeDateTimeLocal(row.startTime),
     durationMinutes: row.durationMinutes,
     maxCapacity: row.maxCapacity ?? null,
-    courseDate: row.courseDate || '',
-    classStartTime: row.classStartTime || '',
-    classEndTime: row.classEndTime || '',
+    courseDate: normalizeDateValue(row.courseDate),
+    classStartTime: normalizeTimeValue(row.classStartTime),
+    classEndTime: normalizeTimeValue(row.classEndTime),
     trainingTheme: row.trainingTheme || '',
     targetAgeRange: row.targetAgeRange || '',
     targetGoals: row.targetGoals || '',
@@ -524,7 +577,7 @@ async function openDetail(id) {
     detailAttendance.trend = attendanceStats?.trend || []
     refreshDetailAttendanceChart()
   } catch (error) {
-    ElMessage.error(error?.response?.data?.message || error.message || '获取课程详情失败')
+    showRequestError(error, '获取课程详情失败')
   } finally {
     detailLoading.value = false
   }
@@ -543,12 +596,12 @@ async function submitForm() {
     courseType: normalizeText(form.courseType),
     coachName: normalizeText(form.coachName),
     venue: normalizeText(form.venue),
-    startTime: form.startTime,
+    startTime: form.startTime ? `${form.startTime}:00` : '',
     durationMinutes: form.durationMinutes,
     maxCapacity: form.maxCapacity ?? null,
     courseDate: form.courseDate || null,
-    classStartTime: form.classStartTime || null,
-    classEndTime: form.classEndTime || null,
+    classStartTime: form.classStartTime ? `${form.classStartTime}:00` : null,
+    classEndTime: form.classEndTime ? `${form.classEndTime}:00` : null,
     trainingTheme: normalizeText(form.trainingTheme),
     targetAgeRange: normalizeText(form.targetAgeRange),
     targetGoals: normalizeText(form.targetGoals),
@@ -611,7 +664,7 @@ async function submitForm() {
     formVisible.value = false
     fetchData()
   } catch (error) {
-    ElMessage.error(error?.response?.data?.message || error.message || '保存课程失败')
+    showRequestError(error, '保存课程失败')
   } finally {
     saving.value = false
   }
@@ -692,5 +745,22 @@ onMounted(async () => {
   font-size: 24px;
   font-weight: 600;
   color: #303133;
+}
+
+.native-field {
+  width: 100%;
+  height: 32px;
+  padding: 0 11px;
+  border: 1px solid var(--el-border-color);
+  border-radius: 4px;
+  outline: none;
+  font-size: 14px;
+  color: var(--el-text-color-regular);
+  background: #fff;
+  box-sizing: border-box;
+}
+
+.native-field:focus {
+  border-color: var(--el-color-primary);
 }
 </style>

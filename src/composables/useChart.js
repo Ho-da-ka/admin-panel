@@ -1,4 +1,4 @@
-import { onBeforeUnmount, onMounted, watch } from 'vue'
+import { nextTick, onBeforeUnmount, onMounted, watch } from 'vue'
 import * as echarts from 'echarts/core'
 import { BarChart, LineChart, PieChart } from 'echarts/charts'
 import { GridComponent, LegendComponent, TooltipComponent } from 'echarts/components'
@@ -8,15 +8,58 @@ echarts.use([LineChart, PieChart, BarChart, GridComponent, TooltipComponent, Leg
 
 export function useChart(domRef, optionRef) {
   let chart = null
+  let currentDom = null
 
-  onMounted(() => {
-    chart = echarts.init(domRef.value)
-    if (optionRef.value) chart.setOption(optionRef.value)
+  function disposeChart() {
+    chart?.dispose()
+    chart = null
+    currentDom = null
+  }
+
+  function ensureChart() {
+    const dom = domRef.value
+    if (!dom) return
+
+    if (!chart || currentDom !== dom) {
+      disposeChart()
+      chart = echarts.init(dom)
+      currentDom = dom
+    }
+
+    if (optionRef.value) {
+      chart.setOption(optionRef.value, true)
+    }
+  }
+
+  onMounted(async () => {
+    await nextTick()
+    ensureChart()
   })
 
-  watch(optionRef, (val) => {
-    if (val && chart) chart.setOption(val, true)
-  }, { deep: true })
+  watch(
+    () => domRef.value,
+    async (dom) => {
+      if (!dom) {
+        disposeChart()
+        return
+      }
+      await nextTick()
+      ensureChart()
+    },
+    { flush: 'post' }
+  )
 
-  onBeforeUnmount(() => chart?.dispose())
+  watch(
+    optionRef,
+    async (value) => {
+      if (!value) return
+      await nextTick()
+      ensureChart()
+    },
+    { deep: true, flush: 'post' }
+  )
+
+  onBeforeUnmount(() => {
+    disposeChart()
+  })
 }

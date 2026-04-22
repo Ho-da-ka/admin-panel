@@ -1,4 +1,4 @@
-﻿import { createRouter, createWebHistory } from 'vue-router'
+import { createRouter, createWebHistory } from 'vue-router'
 import { isLoggedIn } from '../utils/auth'
 
 const routes = [
@@ -30,6 +30,12 @@ const routes = [
         name: 'students',
         component: () => import('../views/students/StudentListView.vue'),
         meta: { title: '学员管理' }
+      },
+      {
+        path: 'parents',
+        name: 'parents',
+        component: () => import('../views/parents/ParentListView.vue'),
+        meta: { title: '家长管理' }
       },
       {
         path: 'courses',

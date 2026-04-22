@@ -15,4 +15,3 @@ export async function getDashboardStats() {
 export async function getCoachWorkload() {
   return unwrap(await http.get('/statistics/coach-workload'))
 }
-

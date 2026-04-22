@@ -39,4 +39,3 @@ export async function updateCourse(id, payload, options = {}) {
 export async function deleteCourse(id, force = false) {
   return unwrap(await http.delete(`/courses/${id}`, { params: { force } }))
 }
-

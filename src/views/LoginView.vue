@@ -22,7 +22,8 @@
       </el-form>
 
       <div class="tips">认证方式：JWT（Bearer Token）</div>
-      <div class="tips">默认账号：admin/Admin@123、coach/Coach@123、student/Student@123、parent/Parent@123</div>
+      <div class="tips">管理后台仅支持管理员与教练登录，家长请在小程序端使用手机号 + 密码登录。</div>
+      <div class="tips">家长账号首次自动创建时，初始密码为手机号后 6 位。</div>
     </el-card>
   </div>
 </template>
@@ -67,7 +68,7 @@ async function handleLogin() {
 
     if (!['ADMIN', 'COACH'].includes(authData.role)) {
       clearAuth()
-      ElMessage.warning(`当前账号角色为${roleLabels[authData.role] || authData.role}，请使用小程序端登录`)
+      ElMessage.warning(`当前账号角色为 ${roleLabels[authData.role] || authData.role}，请使用小程序端登录`)
       return
     }
 

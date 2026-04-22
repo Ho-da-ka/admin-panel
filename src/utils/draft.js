@@ -11,9 +11,17 @@ export function loadDraft(key, fallbackValue) {
 }
 
 export function saveDraft(key, value) {
-  localStorage.setItem(PREFIX + key, JSON.stringify(value))
+  try {
+    localStorage.setItem(PREFIX + key, JSON.stringify(value))
+  } catch {
+    // ignore draft write errors (quota / serialization), must not block UI interaction
+  }
 }
 
 export function clearDraft(key) {
-  localStorage.removeItem(PREFIX + key)
+  try {
+    localStorage.removeItem(PREFIX + key)
+  } catch {
+    // ignore
+  }
 }
