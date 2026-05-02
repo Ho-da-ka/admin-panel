@@ -75,11 +75,7 @@
       <!-- Main Content -->
       <el-main class="main-content">
         <div class="content-wrapper">
-          <router-view v-slot="{ Component }">
-            <transition name="fade-transform" mode="out-in">
-              <component :is="Component" />
-            </transition>
-          </router-view>
+          <router-view />
         </div>
       </el-main>
     </el-container>
@@ -109,7 +105,7 @@ import { computed, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import {
-  Monitor, User, House, Avatar, Calendar, Checked, Odometer, Stopwatch, PieChart, Lock
+  Monitor, User, House, Avatar, Calendar, Checked, Odometer, Stopwatch, PieChart, Lock, MagicStick
 } from '@element-plus/icons-vue'
 import { changeOwnPassword, logout as requestLogout } from '../api/modules/auth'
 import { clearAuth, getDisplayName, getRole } from '../utils/auth'
