@@ -108,6 +108,10 @@
         </el-form-item>
 
         <el-form-item label="家长摘要">
+          <template #label>
+            <span>家长摘要</span>
+            <AiMagicPen :training-data="form" @generated="(v) => form.summaryForParent = v" />
+          </template>
           <el-input v-model="form.summaryForParent" type="textarea" maxlength="500" show-word-limit />
         </el-form-item>
 
@@ -138,6 +142,7 @@ import { listStudents } from '../../api/modules/students'
 import { clearDraft, loadDraft, saveDraft } from '../../utils/draft'
 import { exportToExcel } from '../../utils/export'
 import { normalizeText } from '../../utils/validators'
+import AiMagicPen from '../../components/ai/AiMagicPen.vue'
 
 const FILTER_DRAFT_KEY = 'trainingRecords.filters'
 const FORM_DRAFT_KEY = 'trainingRecords.form'

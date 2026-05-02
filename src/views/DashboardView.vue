@@ -223,40 +223,45 @@ onMounted(async () => {
 <style scoped>
 .stat-label {
   font-size: 13px;
-  color: #909399;
-  margin-bottom: 8px;
+  font-weight: 700;
+  color: #94a3b8;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+  letter-spacing: 0.5px;
 }
 
 .stat-value {
-  font-size: 28px;
-  font-weight: 600;
-  color: #303133;
+  font-size: 34px;
+  font-weight: 800;
+  color: #0f172a;
 }
 
 .stat-sub {
   font-size: 12px;
-  color: #c0c4cc;
-  margin-top: 4px;
+  color: #64748b;
+  margin-top: 8px;
+  font-weight: 500;
 }
 
 .alert-list {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 16px;
 }
 
 .alert-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 16px;
-  padding: 14px 0;
-  border-bottom: 1px solid #ebeef5;
+  gap: 24px;
+  padding: 20px;
+  background-color: #f8fafc;
+  border-radius: 12px;
+  transition: all 0.2s;
 }
 
-.alert-item:last-child {
-  border-bottom: none;
-  padding-bottom: 0;
+.alert-item:hover {
+  background-color: #f1f5f9;
 }
 
 .alert-main {
@@ -267,31 +272,32 @@ onMounted(async () => {
 .alert-title-row {
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin-bottom: 6px;
+  gap: 12px;
+  margin-bottom: 8px;
 }
 
 .alert-title {
-  font-size: 15px;
-  font-weight: 600;
-  color: #303133;
+  font-size: 16px;
+  font-weight: 700;
+  color: #1e293b;
 }
 
 .alert-student {
   font-size: 13px;
-  color: #409eff;
-  margin-bottom: 6px;
+  font-weight: 600;
+  color: #3b82f6;
+  margin-bottom: 8px;
 }
 
 .alert-content {
-  font-size: 13px;
-  color: #606266;
+  font-size: 14px;
+  color: #475569;
   line-height: 1.6;
 }
 
 .alert-meta {
   font-size: 12px;
-  color: #909399;
-  margin-top: 8px;
+  color: #94a3b8;
+  margin-top: 10px;
 }
 </style>

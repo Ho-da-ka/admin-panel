@@ -20,6 +20,12 @@ const routes = [
         meta: { title: '仪表盘' }
       },
       {
+        path: 'ai-hub',
+        name: 'ai-hub',
+        component: () => import('../views/ai/AiAnalysisHub.vue'),
+        meta: { title: 'AI智慧中心' }
+      },
+      {
         path: 'students/:id/profile',
         name: 'student-profile',
         component: () => import('../views/students/StudentProfileView.vue'),

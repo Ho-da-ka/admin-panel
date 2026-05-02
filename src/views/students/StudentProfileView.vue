@@ -1,10 +1,13 @@
 <template>
   <div class="page-panel">
-    <el-page-header @back="router.back()" style="margin-bottom: 20px">
+    <el-page-header @back="router.back()" style="margin-bottom: 24px">
       <template #content>{{ profile.student?.name ?? '学员档案' }}</template>
     </el-page-header>
 
-    <el-row :gutter="16" style="margin-bottom: 20px" v-loading="loading">
+    <!-- AI Insights Section -->
+    <AiStudentInsights :student-id="id" />
+
+    <el-row :gutter="24" style="margin-bottom: 24px" v-loading="loading">
       <!-- 基本信息 -->
       <el-col :span="12">
         <el-card shadow="never" header="基本信息">
@@ -126,6 +129,7 @@ import { listAttendances } from '../../api/modules/attendance'
 import { listFitnessTests } from '../../api/modules/fitness'
 import { listTrainingRecords } from '../../api/modules/training'
 import { useChart } from '../../composables/useChart'
+import AiStudentInsights from '../../components/ai/AiStudentInsights.vue'
 
 const route = useRoute()
 const router = useRouter()

@@ -76,6 +76,10 @@
         </el-form-item>
 
         <el-form-item label="评语">
+          <template #label>
+            <span>评语</span>
+            <AiMagicPen :training-data="{ trainingContent: form.itemName + ': ' + form.testValue + ' ' + form.unit }" @generated="(v) => form.comment = v" />
+          </template>
           <el-input v-model="form.comment" maxlength="255" type="textarea" />
         </el-form-item>
       </el-form>
@@ -96,6 +100,7 @@ import { listStudents } from '../../api/modules/students'
 import { clearDraft, loadDraft, saveDraft } from '../../utils/draft'
 import { exportToExcel } from '../../utils/export'
 import { normalizeText } from '../../utils/validators'
+import AiMagicPen from '../../components/ai/AiMagicPen.vue'
 
 const FITNESS_ITEMS = [
   { label: '身高', unit: 'cm' },
