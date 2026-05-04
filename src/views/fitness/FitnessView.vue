@@ -41,25 +41,32 @@
       @current-change="search"
     />
 
-    <el-dialog v-model="dialogVisible" :title="editId ? '编辑体测' : '新增体测'" width="520px">
+    <el-dialog v-model="dialogVisible" :title="editId ? '编辑体测记录' : '新增体测记录'" width="560px">
       <el-form label-position="top">
-        <el-form-item v-if="!editId" label="学员" required>
-          <el-select v-model="form.studentId" filterable style="width: 100%">
-            <el-option v-for="item in studentOptions" :key="item.id" :label="item.name" :value="item.id" />
-          </el-select>
-        </el-form-item>
+        <div class="form-section-title">测试背景</div>
+        <el-row :gutter="20">
+          <el-col :span="12">
+            <el-form-item v-if="!editId" label="学员" required>
+              <el-select v-model="form.studentId" filterable placeholder="请选择学员" style="width: 100%">
+                <el-option v-for="item in studentOptions" :key="item.id" :label="item.name" :value="item.id" />
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="测试日期" required>
+              <el-date-picker v-model="form.testDate" value-format="YYYY-MM-DD" type="date" placeholder="选择日期" style="width: 100%" />
+            </el-form-item>
+          </el-col>
+        </el-row>
 
-        <el-form-item label="测试日期" required>
-          <el-date-picker v-model="form.testDate" value-format="YYYY-MM-DD" type="date" style="width: 100%" />
-        </el-form-item>
-
-        <el-form-item label="项目" required>
+        <div class="form-section-title">测试数据</div>
+        <el-form-item label="测试项目" required>
           <el-select
             v-model="form.itemName"
             filterable
             allow-create
             default-first-option
-            placeholder="选择或输入项目"
+            placeholder="选择或输入项目名称"
             style="width: 100%"
             @change="onItemChange"
           >
@@ -67,26 +74,33 @@
           </el-select>
         </el-form-item>
 
-        <el-form-item label="数值" required>
-          <el-input-number v-model="form.testValue" :min="0.01" :precision="2" style="width: 100%" />
-        </el-form-item>
+        <el-row :gutter="20">
+          <el-col :span="12">
+            <el-form-item label="数值" required>
+              <el-input-number v-model="form.testValue" :min="0.01" :precision="2" style="width: 100%" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="单位" required>
+              <el-input v-model="form.unit" placeholder="如：cm, kg, 秒" maxlength="32" />
+            </el-form-item>
+          </el-col>
+        </el-row>
 
-        <el-form-item label="单位" required>
-          <el-input v-model="form.unit" maxlength="32" />
-        </el-form-item>
-
-        <el-form-item label="评语">
-          <template #label>
-            <span>评语</span>
-            <AiMagicPen :training-data="{ trainingContent: form.itemName + ': ' + form.testValue + ' ' + form.unit }" @generated="(v) => form.comment = v" />
-          </template>
-          <el-input v-model="form.comment" maxlength="255" type="textarea" />
+        <div class="form-section-title">
+          评价建议
+          <AiMagicPen :training-data="{ trainingContent: form.itemName + ': ' + form.testValue + ' ' + form.unit }" @generated="(v) => form.comment = v" />
+        </div>
+        <el-form-item label-width="0">
+          <el-input v-model="form.comment" placeholder="请输入针对该项测试的评价或改进建议" maxlength="255" type="textarea" :rows="3" show-word-limit />
         </el-form-item>
       </el-form>
 
       <template #footer>
-        <el-button @click="cancelForm">取消</el-button>
-        <el-button type="primary" :loading="saving" @click="submit">保存</el-button>
+        <div class="dialog-footer">
+          <el-button @click="cancelForm">取 消</el-button>
+          <el-button type="primary" :loading="saving" @click="submit">保 存</el-button>
+        </div>
       </template>
     </el-dialog>
   </div>

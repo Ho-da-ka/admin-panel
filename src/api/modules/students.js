@@ -67,6 +67,10 @@ export async function listCareAlerts(params) {
   return unwrap(await http.get('/care-alerts', { params }))
 }
 
+export async function resolveCareAlert(id) {
+  return unwrap(await http.put(`/care-alerts/${id}/resolve`))
+}
+
 export async function getStudentCareAlerts(id) {
   return listCareAlerts({ studentId: id })
 }

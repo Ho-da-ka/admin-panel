@@ -18,8 +18,9 @@
       <el-button type="primary" @click="fetchData">查询</el-button>
       <el-button @click="resetQuery">重置</el-button>
       <el-button @click="handleExport">导出 Excel</el-button>
-      <el-button @click="handleDownloadTemplate">下载导入模板</el-button>
+      <el-button v-if="isAdmin" @click="handleDownloadTemplate">下载导入模板</el-button>
       <el-upload
+        v-if="isAdmin"
         :show-file-list="false"
         accept=".xlsx,.xls"
         :http-request="handleImportRequest"
@@ -71,61 +72,99 @@
       />
     </div>
 
-    <el-dialog v-model="formVisible" :title="formMode === 'create' ? '新增学员' : '编辑学员'" width="560px">
+    <el-dialog v-model="formVisible" :title="formMode === 'create' ? '新增学员' : '编辑学员'" width="640px">
       <el-form label-position="top">
-        <el-form-item label="学号" required v-if="formMode === 'create'">
-          <el-input v-model="form.studentNo" maxlength="32" />
+        <div class="form-section-title">基本信息</div>
+        <el-row :gutter="20">
+          <el-col :span="12">
+            <el-form-item label="学号" required v-if="formMode === 'create'">
+              <el-input v-model="form.studentNo" placeholder="请输入学号" maxlength="32" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="姓名" required>
+              <el-input v-model="form.name" placeholder="请输入姓名" maxlength="64" />
+            </el-form-item>
+          </el-col>
+        </el-row>
+        
+        <el-row :gutter="20">
+          <el-col :span="12">
+            <el-form-item label="性别" required>
+              <el-select v-model="form.gender" style="width: 100%">
+                <el-option label="男" value="MALE" />
+                <el-option label="女" value="FEMALE" />
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="出生日期" required>
+              <el-date-picker v-model="form.birthDate" value-format="YYYY-MM-DD" type="date" style="width: 100%" placeholder="选择日期" />
+            </el-form-item>
+          </el-col>
+        </el-row>
+
+        <div class="form-section-title">监护人信息</div>
+        <el-row :gutter="20">
+          <el-col :span="12">
+            <el-form-item label="监护人姓名">
+              <el-input v-model="form.guardianName" placeholder="请输入姓名" maxlength="64" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="监护人电话">
+              <el-input v-model="form.guardianPhone" placeholder="请输入联系电话" maxlength="20" />
+            </el-form-item>
+          </el-col>
+        </el-row>
+
+        <div class="form-section-title">训练详情</div>
+        <el-form-item label="在训状态" required>
+          <el-radio-group v-model="form.status">
+            <el-radio-button label="ACTIVE">在训</el-radio-button>
+            <el-radio-button label="INACTIVE">停训</el-radio-button>
+          </el-radio-group>
         </el-form-item>
-        <el-form-item label="姓名" required><el-input v-model="form.name" maxlength="64" /></el-form-item>
-        <el-form-item label="性别" required>
-          <el-select v-model="form.gender" style="width: 100%">
-            <el-option label="男" value="MALE" />
-            <el-option label="女" value="FEMALE" />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="出生日期" required>
-          <el-date-picker v-model="form.birthDate" value-format="YYYY-MM-DD" type="date" style="width: 100%" />
-        </el-form-item>
-        <el-form-item label="监护人姓名"><el-input v-model="form.guardianName" maxlength="64" /></el-form-item>
-        <el-form-item label="监护人电话"><el-input v-model="form.guardianPhone" maxlength="20" /></el-form-item>
-        <el-form-item label="状态" required>
-          <el-select v-model="form.status" style="width: 100%">
-            <el-option label="在训" value="ACTIVE" />
-            <el-option label="停训" value="INACTIVE" />
-          </el-select>
-        </el-form-item>
-        <el-row :gutter="12">
+
+        <el-row :gutter="20">
           <el-col :span="12">
             <el-form-item label="阶段目标">
-              <el-input v-model="form.goalFocus" maxlength="255" />
+              <el-input v-model="form.goalFocus" placeholder="例如：提高心肺耐力" maxlength="255" />
             </el-form-item>
           </el-col>
           <el-col :span="12">
             <el-form-item label="训练标签">
-              <el-input v-model="form.trainingTags" maxlength="255" placeholder="如：核心稳定,柔韧性" />
+              <el-input v-model="form.trainingTags" maxlength="255" placeholder="如：核心稳定, 柔韧性" />
             </el-form-item>
           </el-col>
         </el-row>
+
         <el-form-item label="风险提示">
-          <el-input v-model="form.riskNotes" maxlength="255" />
+          <el-input v-model="form.riskNotes" placeholder="是否有过敏或既往病史" maxlength="255" />
         </el-form-item>
-        <el-row :gutter="12">
+
+        <el-row :gutter="20">
           <el-col :span="12">
             <el-form-item label="目标开始日期">
-              <el-date-picker v-model="form.goalStartDate" value-format="YYYY-MM-DD" type="date" style="width: 100%" />
+              <el-date-picker v-model="form.goalStartDate" value-format="YYYY-MM-DD" type="date" style="width: 100%" placeholder="选择日期" />
             </el-form-item>
           </el-col>
           <el-col :span="12">
             <el-form-item label="目标结束日期">
-              <el-date-picker v-model="form.goalEndDate" value-format="YYYY-MM-DD" type="date" style="width: 100%" />
+              <el-date-picker v-model="form.goalEndDate" value-format="YYYY-MM-DD" type="date" style="width: 100%" placeholder="选择日期" />
             </el-form-item>
           </el-col>
         </el-row>
-        <el-form-item label="备注"><el-input v-model="form.remarks" maxlength="255" type="textarea" /></el-form-item>
+
+        <el-form-item label="其他备注">
+          <el-input v-model="form.remarks" placeholder="请输入其他说明信息" maxlength="255" type="textarea" :rows="3" />
+        </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="cancelForm">取消</el-button>
-        <el-button type="primary" :loading="saving" @click="submitForm">保存</el-button>
+        <div class="dialog-footer">
+          <el-button @click="cancelForm">取 消</el-button>
+          <el-button type="primary" :loading="saving" @click="submitForm">保 存</el-button>
+        </div>
       </template>
     </el-dialog>
 
@@ -151,7 +190,7 @@
 
 <script setup>
 import { computed, onMounted, reactive, ref, watch } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import {
   createStudent,
@@ -173,6 +212,7 @@ const FORM_DRAFT_KEY = 'students.form'
 
 const isAdmin = getRole() === 'ADMIN'
 const router = useRouter()
+const route = useRoute()
 
 const loading = ref(false)
 const saving = ref(false)
@@ -181,7 +221,12 @@ const rows = ref([])
 const total = ref(0)
 
 const queryDefaults = { page: 0, size: 10, name: '', status: '' }
-const query = reactive({ ...queryDefaults, ...loadDraft(QUERY_DRAFT_KEY, queryDefaults) })
+const initialQuery = { ...queryDefaults, ...loadDraft(QUERY_DRAFT_KEY, queryDefaults) }
+if (route.query.name) {
+  initialQuery.name = normalizeRouteQuery(route.query.name)
+  initialQuery.page = 0
+}
+const query = reactive(initialQuery)
 
 const currentPage = computed(() => query.page + 1)
 
@@ -248,6 +293,22 @@ async function fetchData() {
   } finally {
     loading.value = false
   }
+}
+
+function applyRouteQuery({ fetch = false } = {}) {
+  if (!route.query.name) return
+  const routeName = normalizeRouteQuery(route.query.name)
+  if (!routeName) return
+  query.name = routeName
+  query.page = 0
+  if (fetch) {
+    fetchData()
+  }
+}
+
+function normalizeRouteQuery(value) {
+  const rawValue = Array.isArray(value) ? value[0] : value
+  return String(rawValue || '').trim()
 }
 
 function resetQuery() {
@@ -525,5 +586,13 @@ watch(
   { deep: true }
 )
 
-onMounted(fetchData)
+watch(
+  () => route.query.name,
+  () => applyRouteQuery({ fetch: true })
+)
+
+onMounted(() => {
+  applyRouteQuery()
+  fetchData()
+})
 </script>

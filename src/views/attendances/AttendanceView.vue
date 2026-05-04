@@ -48,58 +48,70 @@
       @current-change="search"
     />
 
-    <el-dialog v-model="dialogVisible" :title="editId ? '编辑考勤' : '新增考勤'" width="520px">
+    <el-dialog v-model="dialogVisible" :title="editId ? '编辑考勤记录' : '新增单人考勤'" width="540px">
       <el-form label-position="top">
         <template v-if="!editId">
-          <el-form-item label="学员" required>
-            <el-select v-model="form.studentId" filterable style="width: 100%">
-              <el-option v-for="item in studentOptions" :key="item.id" :label="item.name" :value="item.id" />
-            </el-select>
-          </el-form-item>
-          <el-form-item label="课程" required>
-            <el-select v-model="form.courseId" filterable style="width: 100%">
-              <el-option v-for="item in courseOptions" :key="item.id" :label="item.name" :value="item.id" />
-            </el-select>
-          </el-form-item>
+          <div class="form-section-title">记录对象</div>
+          <el-row :gutter="20">
+            <el-col :span="12">
+              <el-form-item label="选择学员" required>
+                <el-select v-model="form.studentId" filterable placeholder="请选择学员" style="width: 100%">
+                  <el-option v-for="item in studentOptions" :key="item.id" :label="item.name" :value="item.id" />
+                </el-select>
+              </el-form-item>
+            </el-col>
+            <el-col :span="12">
+              <el-form-item label="对应课程" required>
+                <el-select v-model="form.courseId" filterable placeholder="请选择课程" style="width: 100%">
+                  <el-option v-for="item in courseOptions" :key="item.id" :label="item.name" :value="item.id" />
+                </el-select>
+              </el-form-item>
+            </el-col>
+          </el-row>
           <el-form-item label="考勤日期" required>
-            <el-date-picker v-model="form.attendanceDate" value-format="YYYY-MM-DD" type="date" style="width: 100%" />
+            <el-date-picker v-model="form.attendanceDate" value-format="YYYY-MM-DD" type="date" placeholder="选择日期" style="width: 100%" />
           </el-form-item>
         </template>
-        <el-form-item label="状态" required>
-          <el-select v-model="form.status" style="width: 100%">
-            <el-option label="出勤" value="PRESENT" />
-            <el-option label="迟到" value="LATE" />
-            <el-option label="缺勤" value="ABSENT" />
-            <el-option label="请假" value="LEAVE" />
-          </el-select>
+
+        <div class="form-section-title">考勤信息</div>
+        <el-form-item label="出勤状态" required>
+          <el-radio-group v-model="form.status">
+            <el-radio-button label="PRESENT">出勤</el-radio-button>
+            <el-radio-button label="LATE">迟到</el-radio-button>
+            <el-radio-button label="ABSENT">缺勤</el-radio-button>
+            <el-radio-button label="LEAVE">请假</el-radio-button>
+          </el-radio-group>
         </el-form-item>
-        <el-form-item label="备注">
-          <el-input v-model="form.note" type="textarea" maxlength="255" />
+        <el-form-item label="情况备注">
+          <el-input v-model="form.note" type="textarea" placeholder="请输入备注说明（选填）" :rows="3" maxlength="255" show-word-limit />
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="cancelForm">取消</el-button>
-        <el-button type="primary" :loading="saving" @click="submit">保存</el-button>
+        <div class="dialog-footer">
+          <el-button @click="cancelForm">取 消</el-button>
+          <el-button type="primary" :loading="saving" @click="submit">保 存</el-button>
+        </div>
       </template>
     </el-dialog>
 
-    <el-dialog v-model="batchDialogVisible" title="批量考勤" width="760px">
+    <el-dialog v-model="batchDialogVisible" title="批量考勤录入" width="820px">
       <el-form label-position="top">
-        <el-row :gutter="12">
+        <div class="form-section-title">批量设置条件</div>
+        <el-row :gutter="20">
           <el-col :span="8">
-            <el-form-item label="课程" required>
-              <el-select v-model="batchForm.courseId" filterable style="width: 100%">
+            <el-form-item label="目标课程" required>
+              <el-select v-model="batchForm.courseId" filterable placeholder="请选择课程" style="width: 100%">
                 <el-option v-for="item in courseOptions" :key="item.id" :label="item.name" :value="item.id" />
               </el-select>
             </el-form-item>
           </el-col>
           <el-col :span="8">
             <el-form-item label="考勤日期" required>
-              <el-date-picker v-model="batchForm.attendanceDate" value-format="YYYY-MM-DD" type="date" style="width: 100%" />
+              <el-date-picker v-model="batchForm.attendanceDate" value-format="YYYY-MM-DD" type="date" placeholder="选择日期" style="width: 100%" />
             </el-form-item>
           </el-col>
           <el-col :span="8">
-            <el-form-item label="默认状态">
+            <el-form-item label="一键默认状态">
               <el-select v-model="batchForm.defaultStatus" style="width: 100%" @change="applyDefaultBatchStatus">
                 <el-option label="出勤" value="PRESENT" />
                 <el-option label="迟到" value="LATE" />
@@ -111,16 +123,16 @@
         </el-row>
       </el-form>
 
-      <div style="margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center">
-        <div class="helper-text">先选择课程和日期，再加载学员列表。每个学员状态可单独调整。</div>
-        <el-button :loading="batchLoadingStudents" @click="loadBatchStudents">加载学员</el-button>
+      <div style="margin: 24px 0 12px; display: flex; justify-content: space-between; align-items: center">
+        <div class="form-section-title" style="margin: 0">学员名单列表</div>
+        <el-button type="primary" plain :loading="batchLoadingStudents" @click="loadBatchStudents">加载课程学员</el-button>
       </div>
 
-      <el-table :data="batchRows" stripe height="320">
-        <el-table-column prop="studentName" label="学员" min-width="160" />
-        <el-table-column label="状态" width="180">
+      <el-table :data="batchRows" stripe border height="380" style="border-radius: 8px; overflow: hidden">
+        <el-table-column prop="studentName" label="学员姓名" min-width="160" />
+        <el-table-column label="出勤状态" width="220">
           <template #default="scope">
-            <el-select v-model="scope.row.status" style="width: 140px">
+            <el-select v-model="scope.row.status" placeholder="请选择" style="width: 160px">
               <el-option label="出勤" value="PRESENT" />
               <el-option label="迟到" value="LATE" />
               <el-option label="缺勤" value="ABSENT" />
@@ -129,11 +141,13 @@
           </template>
         </el-table-column>
       </el-table>
-      <el-empty v-if="batchRows.length === 0" description="请先加载课程学员" />
+      <el-empty v-if="batchRows.length === 0" :image-size="100" description="请先选择课程并加载学员" />
 
       <template #footer>
-        <el-button @click="closeBatchDialog">取消</el-button>
-        <el-button type="primary" :loading="batchSubmitting" @click="submitBatch">一键提交</el-button>
+        <div class="dialog-footer">
+          <el-button @click="closeBatchDialog">取 消</el-button>
+          <el-button type="primary" :loading="batchSubmitting" @click="submitBatch">提交考勤记录</el-button>
+        </div>
       </template>
     </el-dialog>
   </div>

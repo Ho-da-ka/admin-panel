@@ -61,39 +61,59 @@
       />
     </div>
 
-    <el-dialog v-model="formVisible" :title="formMode === 'create' ? '新增教练' : '编辑教练'" width="560px">
+    <el-dialog v-model="formVisible" :title="formMode === 'create' ? '新增教练' : '编辑教练'" width="580px">
       <el-form label-position="top">
-        <el-form-item v-if="formMode === 'create'" label="教练编号" required>
-          <el-input v-model="form.coachCode" maxlength="32" />
+        <div class="form-section-title">基础资料</div>
+        <el-row :gutter="20">
+          <el-col :span="12" v-if="formMode === 'create'">
+            <el-form-item label="教练编号" required>
+              <el-input v-model="form.coachCode" placeholder="如：C001" maxlength="32" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="formMode === 'create' ? 12 : 24">
+            <el-form-item label="姓名" required>
+              <el-input v-model="form.name" placeholder="请输入姓名" maxlength="64" />
+            </el-form-item>
+          </el-col>
+        </el-row>
+
+        <el-row :gutter="20">
+          <el-col :span="12">
+            <el-form-item label="性别" required>
+              <el-select v-model="form.gender" style="width: 100%">
+                <el-option label="男" value="MALE" />
+                <el-option label="女" value="FEMALE" />
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="手机号">
+              <el-input v-model="form.phone" placeholder="请输入联系电话" maxlength="20" />
+            </el-form-item>
+          </el-col>
+        </el-row>
+
+        <div class="form-section-title">业务信息</div>
+        <el-form-item label="在职状态" required>
+          <el-radio-group v-model="form.status">
+            <el-radio-button label="ACTIVE">在职</el-radio-button>
+            <el-radio-button label="INACTIVE">停用</el-radio-button>
+          </el-radio-group>
         </el-form-item>
-        <el-form-item label="姓名" required>
-          <el-input v-model="form.name" maxlength="64" />
-        </el-form-item>
-        <el-form-item label="性别" required>
-          <el-select v-model="form.gender" style="width: 100%">
-            <el-option label="男" value="MALE" />
-            <el-option label="女" value="FEMALE" />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="手机号">
-          <el-input v-model="form.phone" maxlength="20" />
-        </el-form-item>
+
         <el-form-item label="擅长方向">
-          <el-input v-model="form.specialty" maxlength="255" type="textarea" show-word-limit />
+          <el-input v-model="form.specialty" placeholder="例如：少儿体适能、篮球专项等" maxlength="255" type="textarea" :rows="2" show-word-limit />
         </el-form-item>
-        <el-form-item label="状态" required>
-          <el-select v-model="form.status" style="width: 100%">
-            <el-option label="在职" value="ACTIVE" />
-            <el-option label="停用" value="INACTIVE" />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="备注">
-          <el-input v-model="form.remarks" maxlength="255" type="textarea" show-word-limit />
+
+        <el-form-item label="备注说明">
+          <el-input v-model="form.remarks" placeholder="请输入其他备注信息" maxlength="255" type="textarea" :rows="3" show-word-limit />
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="cancelForm">取消</el-button>
-        <el-button type="primary" :loading="saving" @click="submitForm">保存</el-button>
+        <div class="dialog-footer">
+          <el-button @click="cancelForm">取 消</el-button>
+          <el-button type="primary" :loading="saving" @click="submitForm">保 存</el-button>
+        </div>
       </template>
     </el-dialog>
 

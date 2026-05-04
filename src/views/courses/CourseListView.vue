@@ -65,113 +65,163 @@
     <el-dialog
       v-model="formVisible"
       :title="formMode === 'create' ? '新增课程' : '编辑课程'"
-      width="620px"
+      width="720px"
       :close-on-click-modal="false"
     >
       <el-form label-position="top">
-        <el-form-item v-if="formMode === 'create'" label="课程编码" required>
-          <el-input v-model="form.courseCode" maxlength="32" />
-        </el-form-item>
-        <el-form-item label="课程名称" required>
-          <el-input v-model="form.name" maxlength="100" />
-        </el-form-item>
-        <el-form-item label="课程类型" required>
-          <el-input v-model="form.courseType" maxlength="64" />
-        </el-form-item>
-        <el-row :gutter="12">
+        <div class="form-section-title">课程基本信息</div>
+        <el-row :gutter="20">
+          <el-col :span="8">
+            <el-form-item v-if="formMode === 'create'" label="课程编码" required>
+              <el-input v-model="form.courseCode" placeholder="如：PHY-001" maxlength="32" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="formMode === 'create' ? 16 : 24">
+            <el-form-item label="课程名称" required>
+              <el-input v-model="form.name" placeholder="请输入课程全称" maxlength="100" />
+            </el-form-item>
+          </el-col>
+        </el-row>
+
+        <el-row :gutter="20">
+          <el-col :span="12">
+            <el-form-item label="课程类型" required>
+              <el-input v-model="form.courseType" placeholder="如：体适能、专项课" maxlength="64" />
+            </el-form-item>
+          </el-col>
           <el-col :span="12">
             <el-form-item label="训练主题">
-              <el-input v-model="form.trainingTheme" maxlength="100" />
+              <el-input v-model="form.trainingTheme" placeholder="本节课核心主题" maxlength="100" />
             </el-form-item>
           </el-col>
+        </el-row>
+
+        <el-row :gutter="20">
           <el-col :span="12">
             <el-form-item label="适用年龄段">
-              <el-input v-model="form.targetAgeRange" maxlength="32" placeholder="例如 7-9岁" />
+              <el-input v-model="form.targetAgeRange" maxlength="32" placeholder="例如：7-9岁" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="最大容量 (人数)">
+              <el-input-number v-model="form.maxCapacity" :min="1" :step="1" style="width: 100%" placeholder="不填则不限" />
             </el-form-item>
           </el-col>
         </el-row>
-        <el-form-item label="目标方向">
-          <el-input v-model="form.targetGoals" maxlength="255" type="textarea" show-word-limit />
-        </el-form-item>
-        <el-form-item label="训练重点">
-          <el-input v-model="form.focusPoints" maxlength="255" type="textarea" show-word-limit />
-        </el-form-item>
-        <el-form-item label="教练姓名" required>
-          <el-select
-            v-model="form.coachName"
-            filterable
-            allow-create
-            default-first-option
-            placeholder="优先从教练库选择，也可手动输入"
-            style="width: 100%"
-          >
-            <el-option
-              v-for="item in coachOptions"
-              :key="item.id"
-              :label="coachOptionLabel(item)"
-              :value="item.name"
-            />
-          </el-select>
-          <div class="helper-text">建议先在“教练管理”中维护教练档案，再从列表中选择。</div>
-        </el-form-item>
-        <el-form-item label="场地" required>
-          <el-input v-model="form.venue" maxlength="128" />
-        </el-form-item>
-        <el-form-item label="开始时间" required>
-          <input
-            v-model="form.startTime"
-            class="native-field"
-            type="datetime-local"
-          >
-        </el-form-item>
-        <el-form-item label="时长（分钟）" required>
-          <el-input-number v-model="form.durationMinutes" :min="1" style="width: 100%" />
-        </el-form-item>
-        <el-form-item label="最大容量">
-          <el-input-number v-model="form.maxCapacity" :min="1" :step="1" style="width: 100%" placeholder="不填则不限" />
-        </el-form-item>
-        <el-form-item label="上课日期">
-          <input
-            v-model="form.courseDate"
-            class="native-field"
-            type="date"
-          >
-        </el-form-item>
-        <el-row :gutter="12">
+
+        <div class="form-section-title">排课与场地</div>
+        <el-row :gutter="20">
           <el-col :span="12">
-            <el-form-item label="开始时间">
-              <input
+            <el-form-item label="主讲教练" required>
+              <el-select
+                v-model="form.coachName"
+                filterable
+                allow-create
+                default-first-option
+                placeholder="请选择或输入"
+                style="width: 100%"
+              >
+                <el-option
+                  v-for="item in coachOptions"
+                  :key="item.id"
+                  :label="coachOptionLabel(item)"
+                  :value="item.name"
+                />
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="授课场地" required>
+              <el-input v-model="form.venue" placeholder="请输入场地名称" maxlength="128" />
+            </el-form-item>
+          </el-col>
+        </el-row>
+
+        <el-row :gutter="20">
+          <el-col :span="12">
+            <el-form-item label="上课日期" required>
+              <el-date-picker
+                v-model="form.courseDate"
+                type="date"
+                placeholder="选择日期"
+                value-format="YYYY-MM-DD"
+                style="width: 100%"
+              />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="开始时间 (DateTime)" required>
+              <el-date-picker
+                v-model="form.startTime"
+                type="datetime"
+                placeholder="选择具体时间点"
+                value-format="YYYY-MM-DDTHH:mm"
+                format="YYYY-MM-DD HH:mm"
+                style="width: 100%"
+              />
+            </el-form-item>
+          </el-col>
+        </el-row>
+
+        <el-row :gutter="20">
+          <el-col :span="8">
+            <el-form-item label="开始时段">
+              <el-time-select
                 v-model="form.classStartTime"
-                class="native-field"
-                type="time"
-              >
+                start="06:00"
+                step="00:15"
+                end="22:00"
+                placeholder="开始时间"
+                style="width: 100%"
+              />
             </el-form-item>
           </el-col>
-          <el-col :span="12">
-            <el-form-item label="结束时间">
-              <input
+          <el-col :span="8">
+            <el-form-item label="结束时段">
+              <el-time-select
                 v-model="form.classEndTime"
-                class="native-field"
-                type="time"
-              >
+                start="06:00"
+                step="00:15"
+                end="22:00"
+                placeholder="结束时间"
+                style="width: 100%"
+              />
+            </el-form-item>
+          </el-col>
+          <el-col :span="8">
+            <el-form-item label="时长 (分钟)" required>
+              <el-input-number v-model="form.durationMinutes" :min="1" style="width: 100%" />
             </el-form-item>
           </el-col>
         </el-row>
-        <el-form-item label="状态" required>
-          <el-select v-model="form.status" style="width: 100%">
-            <el-option label="待开课" value="PLANNED" />
-            <el-option label="进行中" value="ONGOING" />
-            <el-option label="已结束" value="COMPLETED" />
-            <el-option label="已取消" value="CANCELLED" />
-          </el-select>
+
+        <div class="form-section-title">教学详情</div>
+        <el-form-item label="课程状态" required>
+          <el-radio-group v-model="form.status">
+            <el-radio-button label="PLANNED">待开课</el-radio-button>
+            <el-radio-button label="ONGOING">进行中</el-radio-button>
+            <el-radio-button label="COMPLETED">已结束</el-radio-button>
+            <el-radio-button label="CANCELLED">已取消</el-radio-button>
+          </el-radio-group>
         </el-form-item>
-        <el-form-item label="描述">
-          <el-input v-model="form.description" maxlength="255" type="textarea" show-word-limit />
+
+        <el-form-item label="目标方向">
+          <el-input v-model="form.targetGoals" placeholder="课程要达到的训练效果" maxlength="255" type="textarea" :rows="2" show-word-limit />
+        </el-form-item>
+
+        <el-form-item label="训练重点">
+          <el-input v-model="form.focusPoints" placeholder="需要重点关注的动作或技术点" maxlength="255" type="textarea" :rows="2" show-word-limit />
+        </el-form-item>
+
+        <el-form-item label="详细描述">
+          <el-input v-model="form.description" placeholder="更多补充信息..." maxlength="255" type="textarea" :rows="3" show-word-limit />
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="cancelForm">取消</el-button>
-        <el-button type="primary" :loading="saving" @click="submitForm">保存</el-button>
+        <div class="dialog-footer">
+          <el-button @click="cancelForm">取 消</el-button>
+          <el-button type="primary" :loading="saving" @click="submitForm">保 存</el-button>
+        </div>
       </template>
     </el-dialog>
 

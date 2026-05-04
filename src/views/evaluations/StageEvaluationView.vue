@@ -52,58 +52,64 @@
       @current-change="search"
     />
 
-    <el-dialog v-model="dialogVisible" :title="dialogTitle" width="680px">
+    <el-dialog v-model="dialogVisible" :title="dialogTitle" width="720px">
       <el-form label-position="top">
-        <el-form-item label="学员" required>
-          <el-select v-model="form.studentId" filterable style="width: 100%">
+        <div class="form-section-title">评估基础</div>
+        <el-form-item label="对应学员" required>
+          <el-select v-model="form.studentId" filterable placeholder="请选择学员" style="width: 100%">
             <el-option v-for="item in studentOptions" :key="item.id" :label="item.name" :value="item.id" />
           </el-select>
         </el-form-item>
 
-        <el-form-item label="周期名称" required>
-          <el-input v-model="form.cycleName" maxlength="100" />
+        <el-form-item label="评估周期名称" required>
+          <el-input v-model="form.cycleName" placeholder="如：2026年第一季度体能评估" maxlength="100" />
         </el-form-item>
 
-        <el-row :gutter="12">
+        <el-row :gutter="20">
           <el-col :span="12">
-            <el-form-item label="开始日期" required>
-              <el-date-picker v-model="form.periodStart" value-format="YYYY-MM-DD" type="date" style="width: 100%" />
+            <el-form-item label="周期开始日期" required>
+              <el-date-picker v-model="form.periodStart" value-format="YYYY-MM-DD" type="date" placeholder="选择日期" style="width: 100%" />
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="结束日期" required>
-              <el-date-picker v-model="form.periodEnd" value-format="YYYY-MM-DD" type="date" style="width: 100%" />
+            <el-form-item label="周期结束日期" required>
+              <el-date-picker v-model="form.periodEnd" value-format="YYYY-MM-DD" type="date" placeholder="选择日期" style="width: 100%" />
             </el-form-item>
           </el-col>
         </el-row>
 
-        <el-form-item label="训练完成情况" required>
-          <el-input v-model="form.trainingSummary" type="textarea" maxlength="255" show-word-limit />
+        <div class="form-section-title">详细评估内容</div>
+        <el-form-item label="1. 训练完成情况总结" required>
+          <el-input v-model="form.trainingSummary" type="textarea" placeholder="总结该学员本阶段课程参与及动作达标情况" maxlength="255" :rows="3" show-word-limit />
         </el-form-item>
 
-        <el-form-item label="体测变化" required>
-          <el-input v-model="form.fitnessSummary" type="textarea" maxlength="255" show-word-limit />
+        <el-form-item label="2. 体测数据变化分析" required>
+          <el-input v-model="form.fitnessSummary" type="textarea" placeholder="分析身高、体重及各项体能指标的变化趋势" maxlength="255" :rows="3" show-word-limit />
         </el-form-item>
 
-        <el-form-item label="教练评价" required>
-          <el-input v-model="form.coachEvaluation" type="textarea" maxlength="500" show-word-limit />
+        <el-form-item label="3. 教练综合评价" required>
+          <el-input v-model="form.coachEvaluation" type="textarea" placeholder="从专注度、积极性、协调性等方面进行综合点评" maxlength="500" :rows="4" show-word-limit />
         </el-form-item>
 
-        <el-form-item label="下阶段计划" required>
-          <el-input v-model="form.nextStagePlan" type="textarea" maxlength="500" show-word-limit />
+        <el-form-item label="4. 下阶段针对性计划" required>
+          <el-input v-model="form.nextStagePlan" type="textarea" placeholder="基于本阶段表现，制定下一周期的训练重点" maxlength="500" :rows="4" show-word-limit />
         </el-form-item>
 
         <el-alert
           type="info"
           :closable="false"
-          title="出勤率将根据所选评估周期内的实际考勤自动计算。"
+          title="数据同步提示"
+          description="出勤率将根据您所选的评估周期日期段，自动从考勤数据库中计算得出。"
           show-icon
+          style="margin-top: 20px"
         />
       </el-form>
 
       <template #footer>
-        <el-button @click="cancelForm">取消</el-button>
-        <el-button type="primary" :loading="saving" @click="submit">保存</el-button>
+        <div class="dialog-footer">
+          <el-button @click="cancelForm">取 消</el-button>
+          <el-button type="primary" :loading="saving" @click="submit">保 存 评 估</el-button>
+        </div>
       </template>
     </el-dialog>
   </div>

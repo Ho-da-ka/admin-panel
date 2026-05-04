@@ -75,7 +75,10 @@
                   <div class="alert-content">{{ alert.alertContent }}</div>
                   <div class="alert-meta">{{ formatDateTime(alert.triggeredAt) }}</div>
                 </div>
-                <el-button link type="primary" @click="goStudentProfile(alert.studentId)">查看学员</el-button>
+                <div class="alert-actions">
+                  <el-button link type="primary" @click="goStudentProfile(alert.studentId)">查看学员</el-button>
+                  <el-button link type="success" @click="handleResolveAlert(alert.id)">标记已处理</el-button>
+                </div>
               </div>
             </div>
           </div>
@@ -88,9 +91,9 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import { getDashboardStats, getCoachWorkload } from '../api/modules/statistics'
-import { listCareAlerts } from '../api/modules/students'
+import { listCareAlerts, resolveCareAlert } from '../api/modules/students'
 import { useChart } from '../composables/useChart'
 
 const router = useRouter()
@@ -141,6 +144,24 @@ async function loadCareAlerts() {
     showRequestError(error, '加载关怀提醒失败')
   } finally {
     careAlertLoading.value = false
+  }
+}
+
+async function handleResolveAlert(alertId) {
+  try {
+    await ElMessageBox.confirm('确定已处理该事项吗？处理后将不再在首页展示。', '提示', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'info'
+    })
+    
+    await resolveCareAlert(alertId)
+    ElMessage.success('已标记为处理完成')
+    await loadCareAlerts()
+  } catch (error) {
+    if (error !== 'cancel') {
+      showRequestError(error, '操作失败')
+    }
   }
 }
 
@@ -223,45 +244,51 @@ onMounted(async () => {
 <style scoped>
 .stat-label {
   font-size: 13px;
-  font-weight: 700;
-  color: #94a3b8;
+  font-weight: 600;
+  color: #6b7280;
   text-transform: uppercase;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
   letter-spacing: 0.5px;
 }
 
 .stat-value {
-  font-size: 34px;
+  font-size: 36px;
   font-weight: 800;
-  color: #0f172a;
+  color: #111827;
+  line-height: 1.2;
 }
 
 .stat-sub {
-  font-size: 12px;
-  color: #64748b;
+  font-size: 13px;
+  color: #9ca3af;
   margin-top: 8px;
   font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .alert-list {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 12px;
 }
 
 .alert-item {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  gap: 24px;
-  padding: 20px;
-  background-color: #f8fafc;
+  align-items: flex-start;
+  gap: 20px;
+  padding: 16px 20px;
+  background-color: #f9fafb;
   border-radius: 12px;
-  transition: all 0.2s;
+  border: 1px solid #f3f4f6;
+  transition: all 0.2s ease;
 }
 
 .alert-item:hover {
-  background-color: #f1f5f9;
+  background-color: #f3f4f6;
+  border-color: #e5e7eb;
 }
 
 .alert-main {
@@ -273,31 +300,31 @@ onMounted(async () => {
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 
 .alert-title {
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 700;
-  color: #1e293b;
+  color: #1f2937;
 }
 
 .alert-student {
   font-size: 13px;
   font-weight: 600;
   color: #3b82f6;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 
 .alert-content {
   font-size: 14px;
-  color: #475569;
-  line-height: 1.6;
+  color: #4b5563;
+  line-height: 1.5;
 }
 
 .alert-meta {
   font-size: 12px;
-  color: #94a3b8;
-  margin-top: 10px;
+  color: #9ca3af;
+  margin-top: 8px;
 }
 </style>

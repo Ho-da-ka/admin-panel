@@ -15,3 +15,15 @@ export async function generateTrainingSummary(payload) {
 export async function getStudentInsights(studentId) {
   return unwrap(await http.get(`/ai/student-insights/${studentId}`))
 }
+
+export async function regenerateStudentInsights(studentId) {
+  return unwrap(await http.post(`/ai/student-insights/${studentId}/regenerate`))
+}
+
+export async function getAiHubOverview() {
+  return unwrap(await http.get('/ai/hub-overview'))
+}
+
+export async function generateMonthlySchoolReport() {
+  return unwrap(await http.post('/ai/monthly-report'))
+}

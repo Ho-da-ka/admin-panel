@@ -5,8 +5,8 @@
         <el-icon class="magic-icon"><MagicStick /></el-icon>
         <span>AI 智能综述</span>
       </div>
-      <el-button link type="primary" size="small" @click="fetchInsights">
-        <el-icon><Refresh /></el-icon> 重新生成
+      <el-button link type="primary" size="small" :loading="loading" @click="handleRegenerate">
+        <el-icon v-if="!loading"><Refresh /></el-icon> 重新生成
       </el-button>
     </div>
 
@@ -35,13 +35,18 @@
         </div>
       </div>
     </div>
+    <div v-else-if="!loading" class="ai-empty">
+      <div class="empty-placeholder">
+        <p>暂无 AI 智能综述，点击右侧“重新生成”开启深度成长洞察</p>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
 import { onMounted, ref } from 'vue'
 import { MagicStick, Refresh } from '@element-plus/icons-vue'
-import { getStudentInsights } from '../../api/modules/ai'
+import { getStudentInsights, regenerateStudentInsights } from '../../api/modules/ai'
 
 const props = defineProps({
   studentId: {
@@ -60,6 +65,18 @@ async function fetchInsights() {
     insights.value = await getStudentInsights(props.studentId)
   } catch (error) {
     console.error('AI Insights Error:', error)
+  } finally {
+    loading.value = false
+  }
+}
+
+async function handleRegenerate() {
+  if (!props.studentId) return
+  loading.value = true
+  try {
+    insights.value = await regenerateStudentInsights(props.studentId)
+  } catch (error) {
+    console.error('AI Regeneration Error:', error)
   } finally {
     loading.value = false
   }
@@ -159,6 +176,19 @@ onMounted(() => {
     &::marker {
       color: #3b82f6;
     }
+  }
+}
+
+.ai-empty {
+  padding: 20px 0;
+  text-align: center;
+  .empty-placeholder {
+    font-size: 14px;
+    color: #94a3b8;
+    background: rgba(255, 255, 255, 0.5);
+    padding: 20px;
+    border-radius: 12px;
+    border: 1px dashed #e2e8f0;
   }
 }
 

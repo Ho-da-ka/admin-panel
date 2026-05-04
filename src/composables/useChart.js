@@ -1,10 +1,20 @@
 import { nextTick, onBeforeUnmount, onMounted, watch } from 'vue'
 import * as echarts from 'echarts/core'
-import { BarChart, LineChart, PieChart } from 'echarts/charts'
-import { GridComponent, LegendComponent, TooltipComponent } from 'echarts/components'
+import { BarChart, LineChart, PieChart, RadarChart } from 'echarts/charts'
+import { GridComponent, LegendComponent, RadarComponent, TooltipComponent } from 'echarts/components'
 import { CanvasRenderer } from 'echarts/renderers'
 
-echarts.use([LineChart, PieChart, BarChart, GridComponent, TooltipComponent, LegendComponent, CanvasRenderer])
+echarts.use([
+  LineChart,
+  PieChart,
+  BarChart,
+  RadarChart,
+  GridComponent,
+  TooltipComponent,
+  LegendComponent,
+  RadarComponent,
+  CanvasRenderer
+])
 
 export function useChart(domRef, optionRef) {
   let chart = null

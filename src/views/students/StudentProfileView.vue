@@ -91,10 +91,10 @@
         <el-pagination v-model:current-page="trainingPage" v-model:page-size="trainingSize" :total="trainingTotal"
           layout="total, prev, pager, next" style="margin-top:12px" @current-change="loadTraining" @size-change="loadTraining" />
       </el-tab-pane>
-      <el-tab-pane label="鍏冲鎻愰啋" name="alerts">
+      <el-tab-pane label="关怀提醒" name="alerts">
         <div v-loading="careAlertsLoading">
-          <el-empty v-if="careAlerts.length === 0" description="鏆傛棤寰呰窡杩涚殑鎻愰啋" />
-          <el-timeline v-else>
+          <el-empty v-if="careAlerts.length === 0" description="暂无待跟进的提醒" />
+          <el-timeline v-else style="padding: 10px">
             <el-timeline-item
               v-for="alert in careAlerts"
               :key="alert.id"
@@ -102,12 +102,12 @@
               :type="alert.status === 'OPEN' ? 'danger' : 'success'"
             >
               <div class="alert-row">
-                <div>
+                <div class="alert-info">
                   <div class="alert-title">{{ alert.alertTitle }}</div>
                   <div class="alert-content">{{ alert.alertContent }}</div>
                 </div>
-                <el-tag :type="alert.status === 'OPEN' ? 'danger' : 'success'">
-                  {{ alert.status === 'OPEN' ? '寰呰窡杩?' : '宸茶В闄?' }}
+                <el-tag :type="alert.status === 'OPEN' ? 'danger' : 'success'" size="small" effect="light">
+                  {{ alert.status === 'OPEN' ? '待跟进' : '已解除' }}
                 </el-tag>
               </div>
             </el-timeline-item>

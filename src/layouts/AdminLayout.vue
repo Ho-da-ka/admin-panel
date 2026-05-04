@@ -23,7 +23,7 @@
           <el-icon><House /></el-icon>
           <span>家长管理</span>
         </el-menu-item>
-        <el-menu-item index="/coaches">
+        <el-menu-item v-if="isAdmin" index="/coaches">
           <el-icon><Avatar /></el-icon>
           <span>教练管理</span>
         </el-menu-item>
@@ -193,27 +193,31 @@ async function submitChangePassword() {
   border-right: none;
   display: flex;
   flex-direction: column;
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.15);
+  z-index: 10;
 }
 
 .logo-area {
-  padding: 32px 24px;
+  padding: 24px 20px;
   display: flex;
   align-items: center;
   gap: 12px;
   margin-bottom: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .logo-box {
   width: 36px;
   height: 36px;
-  background-color: var(--admin-primary);
+  background: linear-gradient(135deg, #3b82f6, #60a5fa);
   color: #fff;
-  border-radius: 8px;
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 900;
   font-size: 18px;
+  box-shadow: 0 4px 6px rgba(59, 130, 246, 0.3);
 }
 
 .logo-text {
@@ -227,15 +231,16 @@ async function submitChangePassword() {
   border-right: none;
   background-color: transparent;
   flex: 1;
+  padding-top: 12px;
 }
 
 .menu :deep(.el-menu-item) {
   color: var(--admin-sidebar-text);
-  height: 50px;
-  line-height: 50px;
+  height: 48px;
+  line-height: 48px;
   margin: 4px 16px;
   border-radius: 8px;
-  transition: all 0.2s;
+  transition: all 0.2s ease;
 }
 
 .menu :deep(.el-menu-item:hover) {
@@ -245,24 +250,27 @@ async function submitChangePassword() {
 
 .menu :deep(.el-menu-item.is-active) {
   color: #fff;
-  background-color: var(--admin-primary);
+  background: linear-gradient(90deg, var(--admin-primary), #60a5fa);
   font-weight: 600;
+  box-shadow: 0 4px 6px rgba(59, 130, 246, 0.25);
 }
 
 .header {
-  height: 70px;
+  height: 64px;
   display: flex;
   justify-content: space-between;
   align-items: center;
   background-color: #fff;
   border-bottom: 1px solid var(--admin-border);
   padding: 0 32px;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+  z-index: 5;
 }
 
 .page-header-title {
-  font-size: 20px;
-  font-weight: 800;
-  color: #0f172a;
+  font-size: 18px;
+  font-weight: 700;
+  color: #111827;
 }
 
 .header-right {
@@ -277,9 +285,14 @@ async function submitChangePassword() {
   gap: 12px;
 }
 
+.role-tag {
+  border-radius: 6px;
+  font-weight: 600;
+}
+
 .display-name {
   font-weight: 600;
-  color: #334155;
+  color: #374151;
 }
 
 .header-actions {
@@ -297,7 +310,7 @@ async function submitChangePassword() {
 }
 
 .content-wrapper {
-  padding: 32px;
+  padding: 24px 32px;
   max-width: 1440px;
   margin: 0 auto;
 }
@@ -305,7 +318,7 @@ async function submitChangePassword() {
 /* Transition */
 .fade-transform-enter-active,
 .fade-transform-leave-active {
-  transition: all 0.3s;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .fade-transform-enter-from {
