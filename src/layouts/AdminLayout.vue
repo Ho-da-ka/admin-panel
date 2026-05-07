@@ -4,7 +4,7 @@
     <el-aside class="sidebar" width="260px">
       <div class="logo-area">
         <div class="logo-box">ZF</div>
-        <div class="logo-text">青少年体能教务</div>
+        <div class="logo-text">教务管理平台</div>
       </div>
       <el-menu :default-active="activePath" router class="menu">
         <el-menu-item index="/dashboard">
@@ -48,6 +48,17 @@
           <span>阶段评估</span>
         </el-menu-item>
       </el-menu>
+
+      <!-- User Info Footer -->
+      <div class="sidebar-footer">
+        <div class="user-card">
+          <el-avatar :size="36" class="user-avatar">{{ username.charAt(0) }}</el-avatar>
+          <div class="user-meta">
+            <div class="user-name">{{ username }}</div>
+            <div class="user-role">{{ roleLabel }}</div>
+          </div>
+        </div>
+      </div>
     </el-aside>
 
     <el-container>
@@ -57,17 +68,13 @@
           <span class="page-header-title">{{ route.meta.title || '工作台' }}</span>
         </div>
         <div class="header-right">
-          <div class="user-info">
-            <el-tag size="small" effect="dark" type="primary" class="role-tag">{{ roleLabel }}</el-tag>
-            <span class="display-name">{{ username }}</span>
-          </div>
           <div class="header-actions">
             <el-tooltip content="修改密码" placement="bottom">
-              <el-button circle size="small" @click="passwordDialogVisible = true">
+              <el-button circle size="default" @click="passwordDialogVisible = true">
                 <el-icon><Lock /></el-icon>
               </el-button>
             </el-tooltip>
-            <el-button type="danger" link @click="logout">退出登录</el-button>
+            <el-button type="danger" plain @click="logout">退出登录</el-button>
           </div>
         </div>
       </el-header>
@@ -84,13 +91,13 @@
   <el-dialog v-model="passwordDialogVisible" title="修改密码" width="420px" destroy-on-close>
     <el-form label-position="top">
       <el-form-item label="旧密码" required>
-        <el-input v-model="passwordForm.oldPassword" type="password" show-password />
+        <el-input v-model="passwordForm.oldPassword" type="password" show-password placeholder="请输入旧密码" />
       </el-form-item>
       <el-form-item label="新密码" required>
-        <el-input v-model="passwordForm.newPassword" type="password" show-password />
+        <el-input v-model="passwordForm.newPassword" type="password" show-password placeholder="至少 6 位" />
       </el-form-item>
       <el-form-item label="确认新密码" required>
-        <el-input v-model="passwordForm.confirmPassword" type="password" show-password />
+        <el-input v-model="passwordForm.confirmPassword" type="password" show-password placeholder="请再次输入新密码" />
       </el-form-item>
     </el-form>
     <template #footer>
@@ -190,39 +197,37 @@ async function submitChangePassword() {
 .sidebar {
   background-color: var(--admin-sidebar-bg);
   color: var(--admin-sidebar-text);
-  border-right: none;
+  border-right: 1px solid var(--admin-border);
   display: flex;
   flex-direction: column;
-  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.15);
   z-index: 10;
+  transition: all 0.3s ease;
 }
 
 .logo-area {
-  padding: 24px 20px;
+  padding: 32px 24px;
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-bottom: 8px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .logo-box {
-  width: 36px;
-  height: 36px;
-  background: linear-gradient(135deg, #3b82f6, #60a5fa);
+  width: 32px;
+  height: 32px;
+  background: var(--admin-primary);
   color: #fff;
-  border-radius: 10px;
+  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 900;
-  font-size: 18px;
+  font-size: 16px;
   box-shadow: 0 4px 6px rgba(59, 130, 246, 0.3);
 }
 
 .logo-text {
-  color: #fff;
-  font-weight: 700;
+  color: #0f172a;
+  font-weight: 800;
   font-size: 18px;
   letter-spacing: -0.5px;
 }
@@ -231,28 +236,78 @@ async function submitChangePassword() {
   border-right: none;
   background-color: transparent;
   flex: 1;
-  padding-top: 12px;
+  padding: 0 12px;
 }
 
 .menu :deep(.el-menu-item) {
   color: var(--admin-sidebar-text);
-  height: 48px;
-  line-height: 48px;
-  margin: 4px 16px;
-  border-radius: 8px;
+  height: 44px;
+  line-height: 44px;
+  margin: 4px 0;
+  border-radius: 10px;
   transition: all 0.2s ease;
+  font-weight: 500;
+}
+
+.menu :deep(.el-menu-item .el-icon) {
+  font-size: 18px;
+  margin-right: 12px;
+  opacity: 0.7;
 }
 
 .menu :deep(.el-menu-item:hover) {
-  color: #fff;
-  background-color: rgba(255, 255, 255, 0.05);
+  color: var(--admin-primary);
+  background-color: var(--admin-sidebar-active-bg);
 }
 
 .menu :deep(.el-menu-item.is-active) {
-  color: #fff;
-  background: linear-gradient(90deg, var(--admin-primary), #60a5fa);
-  font-weight: 600;
-  box-shadow: 0 4px 6px rgba(59, 130, 246, 0.25);
+  color: var(--admin-primary);
+  background-color: var(--admin-sidebar-active-bg);
+  font-weight: 700;
+}
+
+.menu :deep(.el-menu-item.is-active .el-icon) {
+  opacity: 1;
+}
+
+.sidebar-footer {
+  padding: 20px 16px;
+  border-top: 1px solid var(--admin-border);
+}
+
+.user-card {
+  background-color: var(--admin-bg);
+  padding: 12px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.user-avatar {
+  background-color: var(--admin-primary);
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.user-meta {
+  flex: 1;
+  min-width: 0;
+}
+
+.user-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: #1e293b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.user-role {
+  font-size: 11px;
+  color: #64748b;
+  margin-top: 2px;
 }
 
 .header {
@@ -263,14 +318,13 @@ async function submitChangePassword() {
   background-color: #fff;
   border-bottom: 1px solid var(--admin-border);
   padding: 0 32px;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
   z-index: 5;
 }
 
 .page-header-title {
   font-size: 18px;
   font-weight: 700;
-  color: #111827;
+  color: #0f172a;
 }
 
 .header-right {
@@ -279,28 +333,10 @@ async function submitChangePassword() {
   gap: 24px;
 }
 
-.user-info {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.role-tag {
-  border-radius: 6px;
-  font-weight: 600;
-}
-
-.display-name {
-  font-weight: 600;
-  color: #374151;
-}
-
 .header-actions {
   display: flex;
   align-items: center;
   gap: 16px;
-  padding-left: 24px;
-  border-left: 1px solid var(--admin-border);
 }
 
 .main-content {
@@ -310,37 +346,25 @@ async function submitChangePassword() {
 }
 
 .content-wrapper {
-  padding: 24px 32px;
-  max-width: 1440px;
+  padding: 32px;
+  max-width: 1600px;
   margin: 0 auto;
-}
-
-/* Transition */
-.fade-transform-enter-active,
-.fade-transform-leave-active {
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.fade-transform-enter-from {
-  opacity: 0;
-  transform: translateX(-15px);
-}
-
-.fade-transform-leave-to {
-  opacity: 0;
-  transform: translateX(15px);
 }
 
 @media (max-width: 1024px) {
   .sidebar {
     width: 80px !important;
   }
-  .logo-text, .menu span {
+  .logo-text, .menu span, .user-meta, .sidebar-footer {
     display: none;
   }
   .logo-area {
     justify-content: center;
     padding: 24px 0;
   }
+  .menu {
+    padding: 0 10px;
+  }
 }
 </style>
+
